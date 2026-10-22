@@ -67,11 +67,15 @@ export function Genres() {
         <h1>Thể loại</h1>
         <p className="muted">{catalog.length} truyện, chia theo thể loại đang có trên kệ.</p>
       </div>
-      <div className="genre-cloud">
-        {list.map((genre) => (
-          <Link key={genre.slug} to={`/the-loai/${genre.slug}`} className="chip">{genre.name} <em>{genre.count}</em></Link>
-        ))}
-      </div>
+      {list.length ? (
+        <div className="genre-cloud">
+          {list.map((genre) => (
+            <Link key={genre.slug} to={`/the-loai/${genre.slug}`} className="chip">{genre.name} <em>{genre.count}</em></Link>
+          ))}
+        </div>
+      ) : (
+        <div className="empty">Chưa có thể loại.</div>
+      )}
     </div>
   )
 }

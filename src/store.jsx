@@ -184,6 +184,10 @@ export function StoreProvider({ children }) {
         setState((s) => ({ ...s, uploads: [manga, ...s.uploads.filter((m) => m.id !== manga.id)] }))
         notify('Đã đăng truyện trên máy bạn')
       },
+      saveMangaEdit: (manga) => {
+        setState((s) => ({ ...s, uploads: [manga, ...s.uploads.filter((m) => m.id !== manga.id)] }))
+        notify('Đã lưu thông tin trên máy này')
+      },
       updateSettings: (partial) => {
         setState((s) => ({ ...s, settings: { ...s.settings, ...partial } }))
       },
@@ -205,5 +209,14 @@ export function useStore() {
 
 export function useCatalog() {
   const { uploads } = useStore()
-  return useMemo(() => [...uploads.map((item) => withChapters(item)), ...mangas], [uploads])
+  return useMemo(() => {
+    const edits = new Map(uploads.map((item) => [item.id, item]))
+    const baseIds = new Set(mangas.map((item) => item.id))
+    const merged = mangas.map((item) => {
+      const edit = edits.get(item.id)
+      return edit ? withChapters({ ...item, ...edit }) : item
+    })
+    const added = uploads.filter((item) => !baseIds.has(item.id)).map((item) => withChapters(item))
+    return [...added, ...merged]
+  }, [uploads])
 }

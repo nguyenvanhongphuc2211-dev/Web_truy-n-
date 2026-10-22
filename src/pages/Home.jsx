@@ -16,7 +16,7 @@ export default function Home() {
   const [period, setPeriod] = useState('week')
   const [board, setBoard] = useState('manga')
   const [picks, setPicks] = useState(() => [3, 7])
-  const current = featured[index % featured.length]
+  const current = featured.length ? featured[index % featured.length] : null
 
   useEffect(() => {
     const timer = window.setInterval(() => setIndex((value) => value + 1), 7000)
@@ -186,7 +186,7 @@ export default function Home() {
           <SectionHead title="Hôm nay đọc gì?" />
           <div className="today-grid">
             {picks.map((pick, slot) => {
-              const manga = catalog[pick % catalog.length]
+              const manga = catalog.length ? catalog[pick % catalog.length] : null
               if (!manga) return null
               return (
                 <div key={slot}>

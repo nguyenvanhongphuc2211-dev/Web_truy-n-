@@ -282,7 +282,7 @@ export function UploadPage() {
   const [title, setTitle] = useState('')
   const [alt, setAlt] = useState('')
   const [description, setDescription] = useState('')
-  const [picked, setPicked] = useState(['romance'])
+  const [picked, setPicked] = useState([])
 
   function toggle(slug) {
     setPicked((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug])
@@ -300,7 +300,7 @@ export function UploadPage() {
       groupId: 'doc-lap',
       groupName: 'Độc lập',
       translator: user?.name || 'Bạn',
-      genres: picked.length ? picked : ['romance'],
+      genres: picked,
       views: 1,
       likes: 0,
       follows: 0,

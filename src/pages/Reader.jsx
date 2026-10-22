@@ -8,6 +8,67 @@ import { useCatalog, useStore } from '../store'
 
 const BACKGROUNDS = ['#0c0a10', '#16141c', '#efe6d6', '#f7f7f5']
 
+function novelParagraphs(chapter) {
+  if (chapter.paragraphs?.length) return chapter.paragraphs
+  return (chapter.lines || []).map((line) => (line.who === 'narr' ? line.text : `“${line.text}”`))
+}
+
+function NovelChapter({ manga, chapter, prevChapter, nextChapter, store, open, setOpen, navigate }) {
+  const dark = store.settings.bg === '#0c0a10' || store.settings.bg === '#16141c'
+  const paragraphs = novelParagraphs(chapter)
+  return (
+    <div>
+      <div className="reader-top">
+        <Link to={`/truyen/${manga.id}`} className="icon-btn" aria-label="Về trang truyện" style={{ textDecoration: 'none' }}><X size={18} /></Link>
+        <div className="grow">
+          <h1>{manga.title}</h1>
+          <span className="meta">{chapter.title}</span>
+        </div>
+        <button className="btn btn-ghost" type="button" disabled={!prevChapter} onClick={() => prevChapter && navigate(`/doc/${manga.id}/${prevChapter.id}`)}>
+          <ChevronLeft size={16} /> Chương trước
+        </button>
+        <button className="btn btn-ghost" type="button" disabled={!nextChapter} onClick={() => nextChapter && navigate(`/doc/${manga.id}/${nextChapter.id}`)}>
+          Chương sau <ChevronRight size={16} />
+        </button>
+        <button className="icon-btn" type="button" onClick={() => setOpen((value) => !value)} aria-label="Cài đặt đọc"><Settings size={18} /></button>
+      </div>
+      {open && (
+        <div className="popover">
+          <p style={{ marginTop: 0 }}><b>Độ rộng</b></p>
+          <div className="choice">
+            {[640, 760, 920].map((width) => (
+              <button key={width} className={`tab ${store.settings.width === width ? 'on' : ''}`} type="button" onClick={() => store.updateSettings({ width })}>{width}</button>
+            ))}
+          </div>
+          <p><b>Nền</b></p>
+          <div className="choice">
+            {BACKGROUNDS.map((color) => (
+              <button key={color} className={`swatch ${store.settings.bg === color ? 'on' : ''}`} style={{ background: color }} type="button" aria-label={color} onClick={() => store.updateSettings({ bg: color })} />
+            ))}
+          </div>
+          <Link to="/cai-dat">Mở trang cài đặt</Link>
+        </div>
+      )}
+      <article className={`novel-sheet ${dark ? 'is-dark' : ''}`} style={{ maxWidth: store.settings.width, background: dark ? undefined : store.settings.bg }}>
+        <p className="novel-kicker">{manga.title}</p>
+        <h2>{chapter.title}</h2>
+        <div className="novel-body">
+          {paragraphs.map((text, index) => <p key={index}>{text}</p>)}
+        </div>
+        <div className="novel-nav">
+          {prevChapter ? (
+            <Link className="btn btn-ghost" to={`/doc/${manga.id}/${prevChapter.id}`}>Chương trước</Link>
+          ) : <span className="btn btn-ghost" style={{ opacity: 0.45 }}>Chương trước</span>}
+          <Link className="btn btn-line" to={`/truyen/${manga.id}`}>Mục lục</Link>
+          {nextChapter ? (
+            <Link className="btn btn-pink" to={`/doc/${manga.id}/${nextChapter.id}`}>Chương sau</Link>
+          ) : <span className="muted">Hết chương đã mở</span>}
+        </div>
+      </article>
+    </div>
+  )
+}
+
 export default function Reader() {
   const { id, chapter: chapterParam } = useParams()
   const catalog = useCatalog()
@@ -40,6 +101,7 @@ export default function Reader() {
 
   useEffect(() => {
     setPage(0)
+    window.scrollTo(0, 0)
     if (manga && chapter) store.pushHistory(manga.id, chapter.id)
   }, [manga?.id, chapter?.id])
 
@@ -55,6 +117,21 @@ export default function Reader() {
   })
 
   if (!manga || !chapter) return <div className="empty">Không thấy chương này.</div>
+
+  if (manga.kind === 'Tiểu thuyết') {
+    return (
+      <NovelChapter
+        manga={manga}
+        chapter={chapter}
+        prevChapter={prevChapter}
+        nextChapter={nextChapter}
+        store={store}
+        open={open}
+        setOpen={setOpen}
+        navigate={navigate}
+      />
+    )
+  }
 
   const shown = mode === 'page' ? pages.slice(page, page + 1) : pages
 

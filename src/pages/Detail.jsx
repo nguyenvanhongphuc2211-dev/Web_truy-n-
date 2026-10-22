@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Bookmark, Eye, Heart, Library, Play } from 'lucide-react'
 import Cover from '../components/Cover'
@@ -16,6 +16,15 @@ export default function Detail() {
   const [text, setText] = useState('')
   const [albumOpen, setAlbumOpen] = useState(false)
   const [albumName, setAlbumName] = useState('')
+  const manual = /^Truyện \d+$/.test(manga?.title || '')
+  const [editTitle, setEditTitle] = useState(manga?.title || '')
+  const [editAuthor, setEditAuthor] = useState('')
+  const [editBlurb, setEditBlurb] = useState(manga?.description || '')
+  useEffect(() => {
+    setEditTitle(manga?.title || '')
+    setEditAuthor('')
+    setEditBlurb(manga?.description || '')
+  }, [manga?.id])
   useTitle(manga?.title || 'Truyện')
 
   if (!manga) return <div className="empty">Không tìm thấy truyện.</div>
@@ -88,6 +97,34 @@ export default function Detail() {
               <Link key={slug} to={`/the-loai/${slug}`} className="chip">{genreName(slug)}</Link>
             ))}
           </div>
+          {manual && (
+            <form
+              className="panel"
+              style={{ padding: 14, margin: '12px 0' }}
+              onSubmit={(event) => {
+                event.preventDefault()
+                const title = editTitle.trim()
+                if (!title || /^Truyện \d+$/.test(title)) return
+                store.saveMangaEdit({
+                  ...manga,
+                  chapters: undefined,
+                  title,
+                  alt: title,
+                  authorName: editAuthor.trim() || 'Chưa ghi trên bìa',
+                  authorId: 'chua-ro',
+                  blurb: editBlurb.trim() || title,
+                  description: editBlurb.trim() || manga.description,
+                })
+              }}
+            >
+              <b>Bìa chưa đọc rõ chữ</b>
+              <p className="muted">Điền tay. Thông tin lưu trên trình duyệt này.</p>
+              <label className="lbl">Tên truyện<input className="input" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} /></label>
+              <label className="lbl">Tác giả<input className="input" value={editAuthor} onChange={(e) => setEditAuthor(e.target.value)} placeholder="Để trống nếu bìa không có" /></label>
+              <label className="lbl">Mô tả<textarea className="input" value={editBlurb} onChange={(e) => setEditBlurb(e.target.value)} /></label>
+              <button className="btn btn-pink" type="submit">Lưu thông tin</button>
+            </form>
+          )}
           <h2>Mô tả</h2>
           <p className="prose">{manga.description}</p>
           <div className="people">

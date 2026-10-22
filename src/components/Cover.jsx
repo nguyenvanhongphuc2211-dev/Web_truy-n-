@@ -27,6 +27,15 @@ export default function Cover({ manga, crop = false }) {
   const glasses = n % 5 === 0
   const lines = titleLines(manga.title)
 
+  if (manga.coverUrl) {
+    return (
+      <div className={`cover-art ${crop ? 'is-crop' : ''}`}>
+        <img className="cover-svg" src={manga.coverUrl} alt="" />
+        {!crop && manga.badge && <span className="ribbon">{manga.badge}</span>}
+      </div>
+    )
+  }
+
   const hairPath =
     style === 1
       ? 'M78 200 C70 90 230 78 226 196 C236 250 214 300 188 318 C170 250 150 220 132 250 C108 300 86 260 78 200 Z'
