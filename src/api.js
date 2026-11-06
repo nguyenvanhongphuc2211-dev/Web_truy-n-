@@ -62,6 +62,29 @@ export const api = {
   genres: () => getJson('/api/genres'),
   authors: () => getJson('/api/authors'),
   groups: () => getJson('/api/groups'),
+  myMangas: () => getJson('/api/mangas/mine'),
+  createManga: (payload) => getJson('/api/mangas', { method: 'POST', body: JSON.stringify(payload) }),
+  updateManga: (id, payload) => getJson(`/api/mangas/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteManga: (id) => getJson(`/api/mangas/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  addChapter: (id, payload) => getJson(`/api/mangas/${encodeURIComponent(id)}/chapters`, { method: 'POST', body: JSON.stringify(payload) }),
+  reviewQueue: (status = 'pending') => getJson(`/api/admin/mangas?status=${encodeURIComponent(status)}`),
+  reviewManga: (id, payload) => getJson(`/api/admin/mangas/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  uploadImage: async (file) => {
+    const headers = {}
+    const token = getToken()
+    if (token) headers.Authorization = `Bearer ${token}`
+    const body = new FormData()
+    body.append('file', file)
+    const response = await fetch('/api/uploads', { method: 'POST', headers, body })
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const err = new Error(data.error || `Lỗi ${response.status}`)
+      err.payload = data
+      err.status = response.status
+      throw err
+    }
+    return data
+  },
   register: (payload) => getJson('/api/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
   login: (payload) => getJson('/api/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
   verifyEmail: (payload) => getJson('/api/auth/verify-email', { method: 'POST', body: JSON.stringify(payload) }),

@@ -32,6 +32,8 @@ function toMangaDoc(manga) {
     lineA: manga.lineA,
     lineB: manga.lineB,
     coverUrl: manga.coverUrl,
+    moderation: 'approved',
+    reviewNote: '',
     chapters: (manga.chapters || []).map((chapter) => ({
       id: chapter.id,
       title: chapter.title,

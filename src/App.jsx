@@ -8,8 +8,10 @@ import Reader from './pages/Reader'
 import { AuthorPage, Forum, GuildPage, Guilds, PostPage } from './pages/Community'
 import {
   FollowAuthors, FollowedStories, FollowGroups, HistoryPage, MyAlbums, NotFound,
-  Notifications, SecurityPage, SettingsPage, UploadPage,
+  Notifications, SecurityPage, SettingsPage,
 } from './pages/Account'
+import { ManageMangaPage, UploadPage } from './pages/Publish'
+import AdminPage from './pages/Admin'
 import { AuthLayout, LoginPage, RegisterPage, VerifyEmailPage } from './pages/Auth'
 
 export default function App() {
@@ -45,6 +47,8 @@ export default function App() {
             <Route path="/cai-dat" element={<SettingsPage />} />
             <Route path="/bao-mat" element={<SecurityPage />} />
             <Route path="/dang-truyen" element={<UploadPage />} />
+            <Route path="/dang-truyen/:id" element={<ManageMangaPage />} />
+            <Route path="/duyet-truyen" element={<AdminPage />} />
             <Route path="/thong-bao" element={<Notifications />} />
             <Route path="*" element={<NotFound />} />
           </Route>

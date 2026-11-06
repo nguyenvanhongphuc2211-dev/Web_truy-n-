@@ -4,6 +4,13 @@ function hash(value) {
   return String(value).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
 }
 
+function skipBlueYellow(hue) {
+  const h = ((Number(hue) % 360) + 360) % 360
+  if (h >= 40 && h <= 78) return 348
+  if (h >= 175 && h <= 255) return 336
+  return h
+}
+
 function titleLines(title) {
   const words = String(title || '').split(' ')
   const lines = ['']
@@ -18,10 +25,12 @@ function titleLines(title) {
 export default function Cover({ manga, crop = false }) {
   const uid = useId().replace(/:/g, '')
   const n = hash(manga.id || manga.title)
-  const hue = manga.hue ?? n % 360
+  const hue = skipBlueYellow(manga.hue ?? n % 360)
+  const hairHue = skipBlueYellow((hue + 320) % 360)
+  const shirtHue = skipBlueYellow((hue + 40) % 360)
   const skin = ['#f6d2be', '#efc0a6', '#f3c7ae', '#e7b394'][n % 4]
-  const hair = `hsl(${(hue + 320) % 360} 42% ${28 + (n % 12)}%)`
-  const shirt = `hsl(${(hue + 40) % 360} 48% 42%)`
+  const hair = `hsl(${hairHue} 42% ${28 + (n % 12)}%)`
+  const shirt = `hsl(${shirtHue} 48% 42%)`
   const accent = `hsl(${hue} 85% 62%)`
   const style = n % 4
   const glasses = n % 5 === 0
@@ -49,7 +58,7 @@ export default function Cover({ manga, crop = false }) {
         <defs>
           <linearGradient id={`bg-${uid}`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor={`hsl(${hue} 55% 28%)`} />
-            <stop offset="0.55" stopColor={`hsl(${(hue + 28) % 360} 48% 16%)`} />
+            <stop offset="0.55" stopColor={`hsl(${skipBlueYellow((hue + 28) % 360)} 48% 16%)`} />
             <stop offset="1" stopColor="#120e16" />
           </linearGradient>
           <linearGradient id={`fade-${uid}`} x1="0" y1="0" x2="0" y2="1">

@@ -17,6 +17,7 @@ const chapterSchema = new mongoose.Schema(
     views: { type: Number, default: 0 },
     lines: [lineSchema],
     paragraphs: [String],
+    images: { type: [String], default: [] },
   },
   { _id: false },
 )
@@ -48,6 +49,9 @@ const mangaSchema = new mongoose.Schema(
     lineA: String,
     lineB: String,
     coverUrl: String,
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+    moderation: { type: String, enum: ['draft', 'pending', 'approved', 'rejected'], index: true },
+    reviewNote: { type: String, default: '' },
     chapters: { type: [chapterSchema], default: [] },
   },
   { timestamps: true },

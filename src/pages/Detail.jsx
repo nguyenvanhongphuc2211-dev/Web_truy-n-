@@ -28,6 +28,9 @@ export default function Detail() {
     setEditAuthor('')
     setEditBlurb(manga?.description || '')
   }, [manga?.id])
+  useEffect(() => {
+    store.ensureManga(id)
+  }, [id, store.ensureManga])
   useTitle(manga?.title || 'Truyện')
 
   if (!manga) return <div className="empty">Không tìm thấy truyện.</div>
@@ -93,6 +96,16 @@ export default function Detail() {
         </div>
         <div>
           <h1>{manga.title}</h1>
+          {manga.moderation && manga.moderation !== 'approved' && (
+            <p className={`mod-banner ${manga.moderation === 'rejected' ? 'is-reject' : ''}`} role="status">
+              {manga.moderation === 'pending' && 'Đang chờ quản trị duyệt. Chưa hiện trên kệ công khai.'}
+              {manga.moderation === 'draft' && 'Bản nháp, chỉ bạn thấy.'}
+              {manga.moderation === 'rejected' && `Quản trị từ chối${manga.reviewNote ? `: ${manga.reviewNote}` : '.'}`}
+              {(store.user?.id === manga.ownerId || store.user?.role === 'admin') && (
+                <> <Link to={`/dang-truyen/${manga.id}`}>Mở trang sửa</Link></>
+              )}
+            </p>
+          )}
           <p className="alt">Tên khác: {manga.alt}</p>
           <p><Link to={`/tac-gia/${author.id}`}>{author.name}</Link> · {manga.kind} · {manga.status}</p>
           <div className="stat-row">

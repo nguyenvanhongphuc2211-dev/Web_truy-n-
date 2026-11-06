@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema(
     emailVerifyHash: { type: String, default: '' },
     emailVerifyExpires: { type: Date, default: null },
     emailVerifySentAt: { type: Date, default: null },
+    role: { type: String, enum: ['reader', 'uploader', 'admin'], default: 'reader', index: true },
+    groupId: { type: String, default: '', index: true },
   },
   { timestamps: true },
 )
@@ -25,6 +27,8 @@ userSchema.methods.toPublic = function toPublic() {
     name: this.name,
     email: this.email,
     emailVerified: this.isEmailVerified(),
+    role: this.role === 'admin' || this.role === 'uploader' ? this.role : 'reader',
+    groupId: this.groupId || '',
   }
 }
 

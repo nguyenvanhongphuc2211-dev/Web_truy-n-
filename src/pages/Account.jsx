@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { MangaGrid } from '../components/Bits'
 import { api } from '../api'
 import { chapterNotices, notices } from '../data'
@@ -222,7 +222,9 @@ export function SecurityPage() {
         {user ? (
           <>
             <p>Đang dùng tên <b>{user.name}</b> · {user.email}</p>
+            <p className="muted">{user.role === 'admin' ? 'Tài khoản quản trị, được duyệt truyện.' : user.role === 'uploader' ? 'Tài khoản đăng truyện.' : 'Tài khoản đọc truyện.'}</p>
             <p className="muted">{user.emailVerified ? 'Email đã xác minh.' : 'Email chưa xác minh.'}</p>
+            {user.role === 'admin' && <p><Link className="pink" to="/duyet-truyen">Mở trang duyệt truyện</Link></p>}
             <form className="form-grid" style={{ marginTop: 12 }} onSubmit={submit}>
               <label className="lbl full">Mật khẩu hiện tại
                 <input className="input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
@@ -238,79 +240,6 @@ export function SecurityPage() {
           <p>Bạn chưa đăng nhập. <Link to="/dang-nhap" className="pink">Vào trang đăng nhập</Link></p>
         )}
       </div>
-    </div>
-  )
-}
-
-export function UploadPage() {
-  useTitle('Đăng truyện')
-  const { uploadManga, user, genres, askLogin } = useStore()
-  const navigate = useNavigate()
-  const [title, setTitle] = useState('')
-  const [alt, setAlt] = useState('')
-  const [description, setDescription] = useState('')
-  const [picked, setPicked] = useState([])
-
-  function toggle(slug) {
-    setPicked((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug])
-  }
-
-  function submit(event) {
-    event.preventDefault()
-    if (!askLogin()) return
-    const id = `${title.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString().slice(-4)}`
-    uploadManga({
-      id,
-      title: title.trim(),
-      alt: alt.trim() || 'Bản gốc chưa đặt',
-      authorId: 'guest',
-      authorName: user?.name || 'Bạn',
-      groupId: 'doc-lap',
-      groupName: 'Độc lập',
-      translator: user?.name || 'Bạn',
-      genres: picked,
-      views: 1,
-      likes: 0,
-      follows: 0,
-      status: 'Đang ra',
-      updated: 'Vừa xong',
-      hue: Math.floor(Math.random() * 360),
-      badge: 'MỚI',
-      kind: 'Doujinshi',
-      chapterCount: 1,
-      lead: 'Bạn',
-      partner: 'Người ấy',
-      blurb: description.trim().slice(0, 140),
-      description: description.trim(),
-      lineA: 'Đây là chương vừa đăng trên máy mình.',
-      lineB: 'Cảm ơn vì đã mở ra đọc.',
-    })
-    navigate(`/truyen/${id}`)
-  }
-
-  return (
-    <div>
-      <Head title="Đăng truyện" text="Truyện mới chỉ hiện trên trình duyệt này." />
-      <form className="panel form-grid" style={{ padding: 16 }} onSubmit={submit}>
-        <label className="lbl">Tên truyện
-          <input className="input" required value={title} onChange={(e) => setTitle(e.target.value)} />
-        </label>
-        <label className="lbl">Tên khác
-          <input className="input" value={alt} onChange={(e) => setAlt(e.target.value)} />
-        </label>
-        <label className="lbl full">Mô tả
-          <textarea className="input" required value={description} onChange={(e) => setDescription(e.target.value)} />
-        </label>
-        <div className="full">
-          <b>Thể loại</b>
-          <div className="check-grid" style={{ marginTop: 8 }}>
-            {genres.map((genre) => (
-              <label key={genre.slug}><input type="checkbox" checked={picked.includes(genre.slug)} onChange={() => toggle(genre.slug)} /> {genre.name}</label>
-            ))}
-          </div>
-        </div>
-        <button className="btn btn-pink" type="submit">Đăng lên kệ</button>
-      </form>
     </div>
   )
 }

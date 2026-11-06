@@ -71,6 +71,7 @@ export async function register(req, res, next) {
       res.json({ ...sent, resent: true })
       return
     }
+    const role = req.body?.role === 'uploader' ? 'uploader' : 'reader'
     const passwordHash = await bcrypt.hash(password, 10)
     const user = await User.create({
       name,
@@ -78,6 +79,8 @@ export async function register(req, res, next) {
       passwordHash,
       emailVerified: false,
       emailVerifyHash: 'pending',
+      role,
+      groupId: role === 'uploader' ? 'doc-lap' : '',
     })
     const sent = await issueCode(user)
     res.status(201).json(sent)

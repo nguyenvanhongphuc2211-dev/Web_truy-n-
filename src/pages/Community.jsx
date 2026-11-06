@@ -113,6 +113,7 @@ export function Guilds() {
               <h3>{group.name}</h3>
               <p className="muted">{group.motto}</p>
               <p className="views">{group.members} thành viên · {count} truyện</p>
+              {group.accountEmail && <p className="views">Tài khoản: {group.accountEmail}</p>}
             </Link>
           )
         })}
@@ -136,6 +137,7 @@ export function GuildPage() {
         <p className="crumbs"><Link to="/nhom-dich">Nhóm dịch</Link></p>
         <h1>{group.name}</h1>
         <p className="muted">{group.motto} · {group.members} thành viên</p>
+        {group.accountEmail && <p className="muted">Tài khoản đăng truyện: {group.accountEmail}</p>}
         <button className="btn btn-pink" type="button" onClick={() => store.toggleGroup(group.id)}>{followed ? 'Đang theo dõi' : 'Theo dõi nhóm'}</button>
       </div>
       <MangaGrid items={items} />

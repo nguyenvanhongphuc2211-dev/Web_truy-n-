@@ -129,10 +129,12 @@ export function RegisterPage() {
   useTitle('Tạo tài khoản')
   const { user, authReady } = useStore()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [role, setRole] = useState(() => (params.get('role') === 'uploader' ? 'uploader' : 'reader'))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const errorRef = useRef(null)
@@ -158,7 +160,7 @@ export function RegisterPage() {
     setBusy(true)
     setError('')
     try {
-      await api.register({ name: name.trim(), email, password, confirmPassword })
+      await api.register({ name: name.trim(), email, password, confirmPassword, role })
       navigate(`/xac-minh-email?email=${encodeURIComponent(email.trim().toLowerCase())}`)
     } catch (err) {
       if (err.payload?.needsVerification) {
@@ -177,11 +179,28 @@ export function RegisterPage() {
   return (
     <>
       <h1>Tạo tài khoản</h1>
-      <p className="muted">Đăng ký bằng email. Mật khẩu tối thiểu 6 ký tự.</p>
+      <p className="muted">Chọn đọc truyện hoặc đăng truyện. Mật khẩu tối thiểu 6 ký tự.</p>
       <form className="auth-form" onSubmit={submit} noValidate>
         {error && (
           <p ref={errorRef} className="auth-error" role="alert" tabIndex={-1}>{error}</p>
         )}
+        <fieldset className="role-pick">
+          <legend>Loại tài khoản</legend>
+          <label>
+            <input type="radio" name="role" value="reader" checked={role === 'reader'} onChange={() => setRole('reader')} />
+            <span>
+              <b>Đọc truyện</b>
+              <em>Theo dõi, lưu kệ, bình luận.</em>
+            </span>
+          </label>
+          <label>
+            <input type="radio" name="role" value="uploader" checked={role === 'uploader'} onChange={() => setRole('uploader')} />
+            <span>
+              <b>Đăng truyện</b>
+              <em>Tài khoản nhóm dịch / người đăng lên kệ.</em>
+            </span>
+          </label>
+        </fieldset>
         <label className="lbl">Tên hiển thị
           <input className="input" name="name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
         </label>

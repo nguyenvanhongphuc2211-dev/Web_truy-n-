@@ -26,4 +26,6 @@ export const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   mailFrom: process.env.MAIL_FROM || process.env.SMTP_USER || 'MOCHI <noreply@localhost>',
+  seedUploaderPassword: process.env.SEED_UPLOADER_PASSWORD || 'mochiDangTruyen1',
+  seedAdminPassword: process.env.SEED_ADMIN_PASSWORD || 'mochiAdmin1',
 }

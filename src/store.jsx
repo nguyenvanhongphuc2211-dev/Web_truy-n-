@@ -27,7 +27,7 @@ function enrichMangas(mangas, authors, groups) {
 }
 
 function chapterHasBody(chapter) {
-  return Boolean(chapter?.lines?.length || chapter?.paragraphs?.length)
+  return Boolean(chapter?.lines?.length || chapter?.paragraphs?.length || chapter?.images?.length)
 }
 
 export function StoreProvider({ children }) {
@@ -71,6 +71,7 @@ export function StoreProvider({ children }) {
   )
   const [catalogError, setCatalogError] = useState(null)
   const [authReady, setAuthReady] = useState(!getToken())
+  const missingManga = useRef(new Set())
 
   useEffect(() => {
     const { user: _user, ageOk: _ageOk, ...rest } = state
@@ -110,7 +111,20 @@ export function StoreProvider({ children }) {
         api.authors(),
         api.groups(),
       ])
-      setCatalog(enrichMangas(mangas, nextAuthors, nextGroups))
+      let list = enrichMangas(mangas, nextAuthors, nextGroups)
+      if (getToken()) {
+        try {
+          const mine = enrichMangas(await api.myMangas(), nextAuthors, nextGroups)
+          const extra = new Map(mine.map((item) => [item.id, item]))
+          list = [
+            ...mine.filter((item) => !list.some((row) => row.id === item.id)),
+            ...list.map((item) => extra.get(item.id) || item),
+          ]
+        } catch {
+          /* khách hoặc token hết hạn */
+        }
+      }
+      setCatalog(list)
       setGenres(nextGenres)
       setAuthors(nextAuthors.map((author) => ({ ...author, name: authorLabel(author.name) })))
       setGroups(nextGroups)
@@ -213,6 +227,22 @@ export function StoreProvider({ children }) {
       catalogError,
       authReady,
       reloadCatalog,
+      ensureManga: async (id) => {
+        if (!id || missingManga.current.has(id)) return
+        let found = false
+        setCatalog((current) => {
+          found = current.some((item) => item.id === id)
+          return current
+        })
+        if (found) return
+        try {
+          const manga = await api.manga(id)
+          missingManga.current.delete(id)
+          setCatalog((current) => (current.some((item) => item.id === manga.id) ? current : [manga, ...current]))
+        } catch {
+          missingManga.current.add(id)
+        }
+      },
       loadChapter,
       toast,
       notify,
@@ -224,6 +254,7 @@ export function StoreProvider({ children }) {
         patch({ user })
         notify(`Xin chào, ${user.name}`)
       },
+      setUser: (user) => patch({ user }),
       logout: () => {
         setToken(null)
         patch({ user: null })

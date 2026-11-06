@@ -5,6 +5,36 @@ import { Genre } from '../models/Genre.js'
 import { Group } from '../models/Group.js'
 import { Manga } from '../models/Manga.js'
 import { Read } from '../models/Read.js'
+import { User } from '../models/User.js'
+import { cleanAssetUrls } from '../lib/files.js'
+
+const HIDDEN = ['draft', 'pending', 'rejected']
+const LIVE = { moderation: { $nin: HIDDEN } }
+
+function isLive(manga) {
+  return !HIDDEN.includes(manga?.moderation)
+}
+
+function owns(user, manga) {
+  return Boolean(user && manga?.ownerId && String(manga.ownerId) === String(user._id || user.id))
+}
+
+function canSee(user, manga) {
+  return isLive(manga) || user?.role === 'admin' || owns(user, manga)
+}
+
+async function viewer(req) {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : ''
+  if (!token) return null
+  try {
+    const payload = jwt.verify(token, env.jwtSecret)
+    if (!payload.sub) return null
+    return User.findById(payload.sub)
+  } catch {
+    return null
+  }
+}
 
 function readerKeyFrom(req) {
   const header = req.headers.authorization || ''
@@ -72,6 +102,9 @@ function toPublicManga(doc, { withChapters = false, withBody = false } = {}) {
     lineA: manga.lineA,
     lineB: manga.lineB,
     coverUrl: manga.coverUrl,
+    ownerId: manga.ownerId ? String(manga.ownerId) : '',
+    moderation: manga.moderation || 'approved',
+    reviewNote: manga.reviewNote || '',
     ...(withChapters ? { chapters } : {}),
   }
 }
@@ -146,7 +179,7 @@ function toCard(doc, authorMap, groupMap) {
 
 async function searchPage(query) {
   const [docs, authors, groups] = await Promise.all([
-    Manga.find()
+    Manga.find(LIVE)
     .select({
       slug: 1,
       title: 1,
@@ -243,7 +276,7 @@ export async function listMangas(req, res, next) {
     if (genre) filter.genres = genre
     if (q) filter.title = { $regex: q, $options: 'i' }
 
-    const docs = await Manga.find(filter).select('-chapters.lines -chapters.paragraphs').lean()
+    const docs = await Manga.find({ ...filter, ...LIVE }).select('-chapters.lines -chapters.paragraphs').lean()
     const periodKey = period === 'day' || period === 'week' || period === 'month' ? period : 'all'
     const sorted = docs.sort((a, b) => {
       if (sort === 'new') return String(b.updated || '').localeCompare(String(a.updated || ''))
@@ -265,6 +298,11 @@ export async function getManga(req, res, next) {
       res.status(404).json({ error: 'Không tìm thấy truyện' })
       return
     }
+    const user = await viewer(req)
+    if (!canSee(user, manga)) {
+      res.status(404).json({ error: 'Không tìm thấy truyện' })
+      return
+    }
     res.json(toPublicManga(manga, { withChapters: true }))
   } catch (err) {
     next(err)
@@ -275,6 +313,11 @@ export async function getChapter(req, res, next) {
   try {
     const manga = await Manga.findOne({ slug: req.params.id }).lean()
     if (!manga) {
+      res.status(404).json({ error: 'Không tìm thấy truyện' })
+      return
+    }
+    const user = await viewer(req)
+    if (!canSee(user, manga)) {
       res.status(404).json({ error: 'Không tìm thấy truyện' })
       return
     }
@@ -297,7 +340,7 @@ export async function listGenres(_req, res, next) {
   try {
     const [genres, counts] = await Promise.all([
       Genre.find().sort({ name: 1 }).lean(),
-      Manga.aggregate([{ $unwind: '$genres' }, { $group: { _id: '$genres', count: { $sum: 1 } } }]),
+      Manga.aggregate([{ $match: LIVE }, { $unwind: '$genres' }, { $group: { _id: '$genres', count: { $sum: 1 } } }]),
     ])
     const countMap = new Map(counts.map((row) => [row._id, row.count]))
     res.json(genres.map((genre) => ({ slug: genre.slug, name: genre.name, count: countMap.get(genre.slug) || 0 })))
@@ -322,7 +365,7 @@ export async function getAuthor(req, res, next) {
       res.status(404).json({ error: 'Không tìm thấy tác giả' })
       return
     }
-    const works = await Manga.find({ authorId: author.slug }).select('-chapters.lines -chapters.paragraphs').lean()
+    const works = await Manga.find({ authorId: author.slug, ...LIVE }).select('-chapters.lines -chapters.paragraphs').lean()
     res.json({
       id: author.slug,
       name: author.name,
@@ -335,14 +378,23 @@ export async function getAuthor(req, res, next) {
 
 export async function listGroups(_req, res, next) {
   try {
-    const groups = await Group.find().sort({ name: 1 }).lean()
+    const [groups, uploaders] = await Promise.all([
+      Group.find().sort({ name: 1 }).lean(),
+      User.find({ role: 'uploader', groupId: { $ne: '' } }).select('email name groupId').lean(),
+    ])
+    const byGroup = new Map(uploaders.map((user) => [user.groupId, user]))
     res.json(
-      groups.map((group) => ({
-        id: group.slug,
-        name: group.name,
-        members: group.members,
-        motto: group.motto,
-      })),
+      groups.map((group) => {
+        const account = byGroup.get(group.slug)
+        return {
+          id: group.slug,
+          name: group.name,
+          members: group.members,
+          motto: group.motto,
+          accountEmail: account?.email || '',
+          accountName: account?.name || '',
+        }
+      }),
     )
   } catch (err) {
     next(err)
@@ -356,12 +408,17 @@ export async function getGroup(req, res, next) {
       res.status(404).json({ error: 'Không tìm thấy nhóm dịch' })
       return
     }
-    const works = await Manga.find({ groupId: group.slug }).select('-chapters.lines -chapters.paragraphs').lean()
+    const [works, account] = await Promise.all([
+      Manga.find({ groupId: group.slug, ...LIVE }).select('-chapters.lines -chapters.paragraphs').lean(),
+      User.findOne({ role: 'uploader', groupId: group.slug }).select('email name').lean(),
+    ])
     res.json({
       id: group.slug,
       name: group.name,
       members: group.members,
       motto: group.motto,
+      accountEmail: account?.email || '',
+      accountName: account?.name || '',
       works: works.map((doc) => toPublicManga(doc, { withChapters: true })),
     })
   } catch (err) {
@@ -444,6 +501,277 @@ export async function setReaction(req, res, next) {
     }
     const fresh = await Manga.findOne({ slug }).select('views likes follows').lean()
     res.json({ views: fresh?.views || 0, likes: fresh?.likes || 0, follows: fresh?.follows || 0, on })
+  } catch (err) {
+    next(err)
+  }
+}
+
+function mangaSlugFrom(title) {
+  const base = fold(title).replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'truyen'
+  return `${base}-${Date.now().toString().slice(-6)}`
+}
+
+export async function listMyMangas(req, res, next) {
+  try {
+    const docs = await Manga.find({ ownerId: req.userId }).select('-chapters.lines -chapters.paragraphs').sort({ createdAt: -1 }).lean()
+    res.json(docs.map((doc) => toPublicManga(doc, { withChapters: true })))
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function createManga(req, res, next) {
+  try {
+    const user = req.user
+    const title = String(req.body?.title || '').trim()
+    const description = String(req.body?.description || '').trim()
+    const alt = String(req.body?.alt || '').trim()
+    const authorName = String(req.body?.authorName || user.name).trim() || user.name
+    const translator = String(req.body?.translator || user.name).trim() || user.name
+    const coverUrl = cleanAssetUrls([req.body?.coverUrl])[0] || ''
+    const kind = req.body?.kind === 'Tiểu thuyết' ? 'Tiểu thuyết' : 'Manga'
+    const status = ['Đang ra', 'Hoàn thành', 'Tạm dừng'].includes(req.body?.status) ? req.body.status : 'Đang ra'
+    const asDraft = req.body?.draft === true
+    const genres = Array.isArray(req.body?.genres)
+      ? req.body.genres.map((item) => String(item).trim()).filter(Boolean)
+      : []
+    if (title.length < 2) {
+      res.status(400).json({ error: 'Tên truyện cần ít nhất 2 ký tự.' })
+      return
+    }
+    if (description.length < 8) {
+      res.status(400).json({ error: 'Mô tả cần ít nhất 8 ký tự.' })
+      return
+    }
+
+    if (user.role !== 'uploader' && user.role !== 'admin') {
+      user.role = 'uploader'
+      if (!user.groupId) user.groupId = 'doc-lap'
+      await user.save()
+    }
+
+    const groupId = user.groupId || 'doc-lap'
+    let group = await Group.findOne({ slug: groupId })
+    if (!group) {
+      group = await Group.create({
+        slug: groupId,
+        name: groupId === 'doc-lap' ? 'Độc lập' : user.name,
+        members: 1,
+        motto: 'Đăng từ tài khoản MOCHI.',
+      })
+    }
+
+    const authorSlug = `user-${String(user._id).slice(-8)}`
+    await Author.findOneAndUpdate(
+      { slug: authorSlug },
+      { slug: authorSlug, name: authorName },
+      { upsert: true },
+    )
+
+    const images = cleanAssetUrls(req.body?.images)
+    const paragraphs = Array.isArray(req.body?.paragraphs)
+      ? req.body.paragraphs.map((item) => String(item).trim()).filter(Boolean)
+      : String(req.body?.chapterText || '').split(/\n{2,}/).map((item) => item.trim()).filter(Boolean)
+    const chapterTitle = String(req.body?.chapterTitle || '').trim() || (images.length || paragraphs.length ? 'Chương 1' : '')
+    const chapters = (images.length || paragraphs.length || chapterTitle)
+      ? [{
+        id: 1,
+        title: chapterTitle || 'Chương 1',
+        time: 'Vừa xong',
+        likes: 0,
+        views: 0,
+        lines: [],
+        paragraphs,
+        images,
+      }]
+      : []
+
+    const slug = mangaSlugFrom(title)
+    const manga = await Manga.create({
+      slug,
+      title,
+      alt: alt || 'Bản gốc chưa đặt',
+      authorId: authorSlug,
+      authorName,
+      groupId: group.slug,
+      groupName: group.name,
+      translator,
+      genres,
+      views: 0,
+      likes: 0,
+      follows: 0,
+      status,
+      updated: 'Vừa xong',
+      hue: Math.floor(Math.random() * 360),
+      badge: asDraft ? 'NHÁP' : 'CHỜ DUYỆT',
+      kind,
+      chapterCount: chapters.length,
+      lead: user.name,
+      partner: 'Người ấy',
+      blurb: description.slice(0, 140),
+      description,
+      lineA: description.slice(0, 80),
+      lineB: 'Cảm ơn vì đã mở ra đọc.',
+      coverUrl,
+      ownerId: user._id,
+      moderation: asDraft ? 'draft' : 'pending',
+      reviewNote: '',
+      chapters,
+    })
+
+    res.status(201).json({ manga: toPublicManga(manga, { withChapters: true }), user: user.toPublic() })
+  } catch (err) {
+    if (err?.code === 11000) {
+      res.status(409).json({ error: 'Tên truyện vừa trùng. Hãy đổi tên rồi đăng lại.' })
+      return
+    }
+    next(err)
+  }
+}
+
+async function ownedManga(req, res) {
+  const manga = await Manga.findOne({ slug: req.params.id })
+  if (!manga) {
+    res.status(404).json({ error: 'Không tìm thấy truyện' })
+    return null
+  }
+  if (req.user.role !== 'admin' && !owns(req.user, manga)) {
+    res.status(403).json({ error: 'Bạn không được sửa truyện này.' })
+    return null
+  }
+  return manga
+}
+
+function markNeedsReview(manga) {
+  if (manga.moderation === 'approved' || manga.moderation === 'rejected') {
+    manga.moderation = 'pending'
+    manga.badge = 'CHỜ DUYỆT'
+    manga.reviewNote = ''
+  }
+  if (manga.moderation === 'draft') manga.badge = 'NHÁP'
+  manga.updated = 'Vừa xong'
+}
+
+export async function updateManga(req, res, next) {
+  try {
+    const manga = await ownedManga(req, res)
+    if (!manga) return
+    const title = String(req.body?.title ?? manga.title).trim()
+    const description = String(req.body?.description ?? manga.description).trim()
+    if (title.length < 2) {
+      res.status(400).json({ error: 'Tên truyện cần ít nhất 2 ký tự.' })
+      return
+    }
+    manga.title = title
+    manga.alt = String(req.body?.alt ?? manga.alt).trim()
+    manga.description = description
+    manga.blurb = description.slice(0, 140)
+    manga.authorName = String(req.body?.authorName ?? manga.authorName).trim() || manga.authorName
+    manga.translator = String(req.body?.translator ?? manga.translator).trim() || manga.translator
+    if (Array.isArray(req.body?.genres)) manga.genres = req.body.genres.map((item) => String(item).trim()).filter(Boolean)
+    if (req.body?.kind) manga.kind = req.body.kind === 'Tiểu thuyết' ? 'Tiểu thuyết' : 'Manga'
+    if (['Đang ra', 'Hoàn thành', 'Tạm dừng'].includes(req.body?.status)) manga.status = req.body.status
+    if (req.body?.coverUrl !== undefined) manga.coverUrl = cleanAssetUrls([req.body.coverUrl])[0] || ''
+    if (req.user.role !== 'admin') {
+      if (req.body?.submit === true && (manga.moderation === 'draft' || manga.moderation === 'rejected')) {
+        manga.moderation = 'pending'
+        manga.badge = 'CHỜ DUYỆT'
+        manga.reviewNote = ''
+      } else {
+        markNeedsReview(manga)
+      }
+    }
+    await manga.save()
+    res.json({ manga: toPublicManga(manga, { withChapters: true }), user: req.user.toPublic() })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function deleteManga(req, res, next) {
+  try {
+    const manga = await ownedManga(req, res)
+    if (!manga) return
+    await Read.deleteMany({ mangaSlug: manga.slug })
+    await manga.deleteOne()
+    res.json({ ok: true, id: manga.slug })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function addChapter(req, res, next) {
+  try {
+    const manga = await ownedManga(req, res)
+    if (!manga) return
+    const images = cleanAssetUrls(req.body?.images)
+    const paragraphs = Array.isArray(req.body?.paragraphs)
+      ? req.body.paragraphs.map((item) => String(item).trim()).filter(Boolean)
+      : String(req.body?.chapterText || '').split(/\n{2,}/).map((item) => item.trim()).filter(Boolean)
+    const title = String(req.body?.title || '').trim()
+    if (!title) {
+      res.status(400).json({ error: 'Cần tên chương.' })
+      return
+    }
+    if (!images.length && !paragraphs.length) {
+      res.status(400).json({ error: 'Cần ảnh trang hoặc nội dung chữ.' })
+      return
+    }
+    const nextId = (manga.chapters || []).reduce((max, chapter) => Math.max(max, Number(chapter.id) || 0), 0) + 1
+    manga.chapters.push({
+      id: nextId,
+      title,
+      time: 'Vừa xong',
+      likes: 0,
+      views: 0,
+      lines: [],
+      paragraphs,
+      images,
+    })
+    manga.chapterCount = manga.chapters.length
+    if (req.user.role !== 'admin') markNeedsReview(manga)
+    else manga.updated = 'Vừa xong'
+    await manga.save()
+    res.status(201).json({ manga: toPublicManga(manga, { withChapters: true }) })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function listReviewQueue(req, res, next) {
+  try {
+    const status = ['pending', 'rejected', 'draft', 'approved'].includes(req.query.status) ? req.query.status : 'pending'
+    const docs = await Manga.find({ moderation: status }).sort({ updatedAt: -1 }).select('-chapters.lines -chapters.paragraphs').lean()
+    res.json(docs.map((doc) => toPublicManga(doc, { withChapters: true })))
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function reviewManga(req, res, next) {
+  try {
+    const manga = await Manga.findOne({ slug: req.params.id })
+    if (!manga) {
+      res.status(404).json({ error: 'Không tìm thấy truyện' })
+      return
+    }
+    const action = req.body?.action
+    const note = String(req.body?.note || '').trim()
+    if (action === 'approve') {
+      manga.moderation = 'approved'
+      manga.badge = 'MỚI'
+      manga.reviewNote = ''
+      manga.updated = 'Vừa xong'
+    } else if (action === 'reject') {
+      manga.moderation = 'rejected'
+      manga.badge = 'TỪ CHỐI'
+      manga.reviewNote = note || 'Chưa đủ điều kiện lên kệ.'
+    } else {
+      res.status(400).json({ error: 'Chọn duyệt hoặc từ chối.' })
+      return
+    }
+    await manga.save()
+    res.json({ manga: toPublicManga(manga, { withChapters: true }) })
   } catch (err) {
     next(err)
   }

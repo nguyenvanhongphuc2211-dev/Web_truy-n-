@@ -125,9 +125,14 @@ export default function Reader() {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const [open, setOpen] = useState(false)
-  const waitingForBody = manga?.kind === 'Tiểu thuyết' && chapter && !chapter.paragraphs?.length && !chapter.lines?.length
-  const pages = manga && chapter ? pagesFor(manga, chapter) : []
+  const waitingForBody = manga?.kind === 'Tiểu thuyết' && chapter && !chapter.paragraphs?.length && !chapter.lines?.length && !chapter.images?.length
+  const imagePages = chapter?.images?.length ? chapter.images : []
+  const pages = manga && chapter ? (imagePages.length ? imagePages.map((url) => [{ who: 'img', text: url }]) : pagesFor(manga, chapter)) : []
   useTitle(manga && chapter ? `${manga.title} · Chương ${chapter.id}` : 'Đọc truyện')
+
+  useEffect(() => {
+    store.ensureManga(id)
+  }, [id, store.ensureManga])
 
   useEffect(() => {
     if (id && chapterParam) store.loadChapter(id, chapterParam)
@@ -169,6 +174,56 @@ export default function Reader() {
 
   if (!manga || !chapter) return <div className="empty">Không thấy chương này.</div>
   if (waitingForBody) return <div className="empty">Đang tải chương…</div>
+
+  if (imagePages.length) {
+    const shown = mode === 'page' ? imagePages.slice(page, page + 1) : imagePages
+    return (
+      <div>
+        <div className="reader-top">
+          <Link to={`/truyen/${manga.id}`} className="icon-btn" aria-label="Về trang truyện" style={{ textDecoration: 'none' }}><X size={18} /></Link>
+          <div className="grow">
+            <h1>{manga.title}</h1>
+            <span className="meta">{chapter.title}</span>
+          </div>
+          <button className="btn btn-ghost" type="button" disabled={!prevChapter} onClick={() => prevChapter && navigate(`/doc/${manga.id}/${prevChapter.id}`)}>
+            <ChevronLeft size={16} /> Chương trước
+          </button>
+          <button className="btn btn-ghost" type="button" disabled={!nextChapter} onClick={() => nextChapter && navigate(`/doc/${manga.id}/${nextChapter.id}`)}>
+            Chương sau <ChevronRight size={16} />
+          </button>
+          <button className="icon-btn" type="button" onClick={() => setOpen((value) => !value)} aria-label="Cài đặt đọc"><Settings size={18} /></button>
+        </div>
+        {open && (
+          <div className="popover">
+            <p style={{ marginTop: 0 }}><b>Cách đọc</b></p>
+            <div className="choice">
+              <button className={`tab ${mode === 'scroll' ? 'on' : ''}`} type="button" onClick={() => store.updateSettings({ mode: 'scroll' })}>Cuộn dọc</button>
+              <button className={`tab ${mode === 'page' ? 'on' : ''}`} type="button" onClick={() => store.updateSettings({ mode: 'page' })}>Từng trang</button>
+            </div>
+            <Link to="/cai-dat">Mở trang cài đặt</Link>
+          </div>
+        )}
+        <div className="stage" style={{ maxWidth: store.settings.width }}>
+          {shown.map((url, index) => (
+            <figure key={url} className="scan-page">
+              <img src={url} alt={`Trang ${index + (mode === 'page' ? page : 0) + 1}`} />
+            </figure>
+          ))}
+          <div className="endcap panel">
+            {mode === 'page' && (
+              <div className="row" style={{ justifyContent: 'center', marginBottom: 12 }}>
+                <button className="btn btn-ghost" type="button" onClick={() => go(-1)} disabled={page === 0 && !prevChapter}>Trang trước</button>
+                <span>{page + 1} / {imagePages.length}</span>
+                <button className="btn btn-ghost" type="button" onClick={() => go(1)} disabled={page === imagePages.length - 1 && !nextChapter}>Trang sau</button>
+              </div>
+            )}
+            <ChapterTools manga={manga} chapter={chapter} prevChapter={prevChapter} nextChapter={nextChapter} />
+            <Comments manga={manga} chapterId={chapter.id} />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (manga.kind === 'Tiểu thuyết') {
     return (

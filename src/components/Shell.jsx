@@ -90,6 +90,9 @@ function Sidebar({ onSearch }) {
           ) : (
             <button type="button" title="Đăng truyện" onClick={() => askLogin()}><Upload size={16} /> <span className="hide-collapsed">Đăng truyện</span></button>
           )}
+          {user?.role === 'admin' && (
+            <Link to="/duyet-truyen" title="Duyệt truyện"><Shield size={16} /> <span className="hide-collapsed">Duyệt truyện</span></Link>
+          )}
         </div>
         <SideLink to="/" label="Trang chủ" icon={Home} />
         <button className="nav-btn" type="button" onClick={onSearch}>
@@ -214,7 +217,7 @@ export default function Shell() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
-  const catalogOptional = location.pathname === '/bao-mat' || location.pathname === '/tim-kiem' || location.pathname === '/danh-sach'
+  const catalogOptional = location.pathname === '/bao-mat' || location.pathname === '/tim-kiem' || location.pathname === '/danh-sach' || location.pathname.startsWith('/dang-truyen') || location.pathname === '/duyet-truyen'
 
   useEffect(() => {
     setMobileOpen(false)

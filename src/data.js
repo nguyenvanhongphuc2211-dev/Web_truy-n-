@@ -34,6 +34,7 @@ export const groups = [
   { id: 'ban-cong', name: 'Ban Công Team', members: 5, motto: 'Truyện mưa và đèn vàng.' },
   { id: 'pho-nho', name: 'Phố Nhỏ', members: 15, motto: 'Manhwa đời thường.' },
   { id: 'khong-ngu', name: 'Không Ngủ', members: 3, motto: 'Oneshot cuối tuần.' },
+  { id: 'doc-lap', name: 'Độc lập', members: 1, motto: 'Đăng một mình, không theo nhóm.' },
 ]
 
 const CHAPTER_TITLES = [
