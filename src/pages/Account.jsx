@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MangaGrid } from '../components/Bits'
-import { authors, communityAlbums, genres, groups, notices } from '../data'
+import { api } from '../api'
+import { chapterNotices, notices } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 import Cover from '../components/Cover'
@@ -15,15 +16,15 @@ function Head({ title, text }) {
   )
 }
 
-export function Saved() {
-  useTitle('Truyện đã lưu')
+export function FollowedStories() {
+  useTitle('Truyện theo dõi')
   const catalog = useCatalog()
-  const { saved } = useStore()
-  const items = saved.map((id) => catalog.find((manga) => manga.id === id)).filter(Boolean)
+  const { follows } = useStore()
+  const items = (follows || []).map((id) => catalog.find((manga) => manga.id === id)).filter(Boolean)
   return (
     <div>
-      <Head title="Truyện đã lưu" text="Danh sách nằm trong trình duyệt, không cần tài khoản." />
-      <MangaGrid items={items} />
+      <Head title="Truyện theo dõi" text="Chương mới của các bộ này hiện trong Thông báo." />
+      {items.length ? <MangaGrid items={items} /> : <div className="empty">Bạn chưa theo dõi bộ nào. Mở một truyện và bấm Theo dõi.</div>}
     </div>
   )
 }
@@ -80,7 +81,7 @@ export function MyAlbums() {
     <div>
       <Head title="Album của bạn" text="Tạo tuyển tập rồi thêm truyện từ trang chi tiết." />
       <form className="row" onSubmit={create} style={{ marginBottom: 16 }}>
-        <input className="input" placeholder="Tên album" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="input" aria-label="Tên album" placeholder="Tên album" value={name} onChange={(e) => setName(e.target.value)} />
         <label className="chip"><input type="checkbox" checked={isPublic} onChange={(e) => setPublic(e.target.checked)} /> Công khai</label>
         <button className="btn btn-pink" type="submit">Tạo</button>
       </form>
@@ -100,14 +101,13 @@ export function MyAlbums() {
           </Link>
         ))}
       </div>
-      <p className="meta">Gợi ý có sẵn: {communityAlbums.map((album) => album.name).join(', ')}.</p>
     </div>
   )
 }
 
 export function FollowAuthors() {
   useTitle('Tác giả theo dõi')
-  const { followAuthors, toggleAuthor } = useStore()
+  const { authors, followAuthors, toggleAuthor } = useStore()
   const list = authors.filter((author) => followAuthors.includes(author.id))
   return (
     <div>
@@ -128,7 +128,7 @@ export function FollowAuthors() {
 export function FollowGroups() {
   useTitle('Dịch giả theo dõi')
   const store = useStore()
-  const followedGroups = groups.filter((group) => store.followGroups.includes(group.id))
+  const followedGroups = store.groups.filter((group) => store.followGroups.includes(group.id))
   return (
     <div>
       <Head title="Dịch giả theo dõi" text="Gồm dịch giả và nhóm dịch bạn đã bấm theo dõi." />
@@ -189,87 +189,54 @@ export function SettingsPage() {
 
 export function SecurityPage() {
   useTitle('Bảo mật')
-  const { user, logout, notify } = useStore()
+  const { user, logout, notify, authReady } = useStore()
+  const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function submit(event) {
+    event.preventDefault()
+    if (password.length < 6) {
+      notify('Mật khẩu mới cần ít nhất 6 ký tự')
+      return
+    }
+    setBusy(true)
+    try {
+      await api.changePassword({ currentPassword, password })
+      setCurrentPassword('')
+      setPassword('')
+      notify('Đã đổi mật khẩu trên máy chủ')
+    } catch (err) {
+      notify(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!authReady) return <div className="empty">Đang kiểm tra phiên đăng nhập…</div>
+
   return (
     <div>
-      <Head title="Bảo mật" text="Đăng nhập ở bản này chỉ để gắn tên. Mật khẩu không được gửi đi đâu." />
+      <Head title="Bảo mật" text="Tài khoản lưu trên MongoDB. Mật khẩu được băm, không lưu bản rõ." />
       <div className="panel" style={{ padding: 16 }}>
         {user ? (
           <>
             <p>Đang dùng tên <b>{user.name}</b> · {user.email}</p>
-            <form className="row" onSubmit={(event) => {
-              event.preventDefault()
-              if (password.length < 6) { notify('Mật khẩu mới cần ít nhất 6 ký tự'); return }
-              setPassword('')
-              notify('Đã cập nhật mật khẩu trên phiên này')
-            }}>
-              <input className="input" type="password" placeholder="Mật khẩu mới" value={password} onChange={(e) => setPassword(e.target.value)} />
-              <button className="btn btn-pink" type="submit">Đổi mật khẩu</button>
+            <p className="muted">{user.emailVerified ? 'Email đã xác minh.' : 'Email chưa xác minh.'}</p>
+            <form className="form-grid" style={{ marginTop: 12 }} onSubmit={submit}>
+              <label className="lbl full">Mật khẩu hiện tại
+                <input className="input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+              </label>
+              <label className="lbl full">Mật khẩu mới
+                <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              </label>
+              <button className="btn btn-pink" type="submit" disabled={busy}>{busy ? 'Đang lưu…' : 'Đổi mật khẩu'}</button>
             </form>
             <button className="btn btn-ghost" style={{ marginTop: 12 }} type="button" onClick={logout}>Đăng xuất</button>
           </>
         ) : (
           <p>Bạn chưa đăng nhập. <Link to="/dang-nhap" className="pink">Vào trang đăng nhập</Link></p>
         )}
-        <p className="muted">Phiên hiện tại: trình duyệt này · Windows</p>
-      </div>
-    </div>
-  )
-}
-
-export function LoginPage() {
-  useTitle('Đăng nhập')
-  const { user, login } = useStore()
-  const navigate = useNavigate()
-  const [mode, setMode] = useState('login')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-
-  function submit(event) {
-    event.preventDefault()
-    if (!email.includes('@') || password.length < 4) {
-      setError('Cần email hợp lệ và mật khẩu từ 4 ký tự.')
-      return
-    }
-    const display = (mode === 'register' ? name : email.split('@')[0]).trim() || 'Bạn đọc'
-    login({ name: display, email })
-    navigate('/')
-  }
-
-  if (user) {
-    return (
-      <div>
-        <Head title={`Xin chào, ${user.name}`} text={user.email} />
-        <Link className="btn btn-pink" to="/bao-mat">Mở bảo mật</Link>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ maxWidth: 460, margin: '12px auto' }}>
-      <div className="panel" style={{ padding: 20 }}>
-        <div className="tabs-line">
-          <button className={mode === 'login' ? 'on' : ''} type="button" onClick={() => setMode('login')}>Đăng nhập</button>
-          <button className={mode === 'register' ? 'on' : ''} type="button" onClick={() => setMode('register')}>Tạo tài khoản</button>
-        </div>
-        <form onSubmit={submit} className="form-grid" style={{ marginTop: 12 }}>
-          {mode === 'register' && (
-            <label className="lbl full">Tên hiển thị
-              <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
-            </label>
-          )}
-          <label className="lbl full">Email
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </label>
-          <label className="lbl full">Mật khẩu
-            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </label>
-          {error && <p className="pink full">{error}</p>}
-          <button className="btn btn-pink full" type="submit">{mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}</button>
-        </form>
       </div>
     </div>
   )
@@ -277,7 +244,7 @@ export function LoginPage() {
 
 export function UploadPage() {
   useTitle('Đăng truyện')
-  const { uploadManga, user } = useStore()
+  const { uploadManga, user, genres, askLogin } = useStore()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [alt, setAlt] = useState('')
@@ -290,6 +257,7 @@ export function UploadPage() {
 
   function submit(event) {
     event.preventDefault()
+    if (!askLogin()) return
     const id = `${title.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString().slice(-4)}`
     uploadManga({
       id,
@@ -349,15 +317,17 @@ export function UploadPage() {
 
 export function Notifications() {
   useTitle('Thông báo')
-  const { readNotes, markNotice, markAllNotices } = useStore()
+  const catalog = useCatalog()
+  const { readNotes, follows, seen, markNotice, markAllNotices } = useStore()
+  const feed = [...chapterNotices(catalog, follows, seen), ...notices]
   return (
     <div>
       <div className="section-head">
         <h1 className="section-title" style={{ textTransform: 'none' }}>Thông báo</h1>
-        <button className="btn btn-ghost" type="button" onClick={() => markAllNotices(notices.map((item) => item.id))}>Đánh dấu đã đọc</button>
+        <button className="btn btn-ghost" type="button" onClick={() => markAllNotices(feed.map((item) => item.id))}>Đánh dấu đã đọc</button>
       </div>
       <div className="note-list">
-        {notices.map((notice) => (
+        {feed.map((notice) => (
           <Link key={notice.id} to={notice.href} className={`notice ${readNotes.includes(notice.id) ? '' : 'unread'}`} onClick={() => markNotice(notice.id)}>
             <b>{notice.title}</b>
             <p className="muted" style={{ margin: '4px 0' }}>{notice.body}</p>

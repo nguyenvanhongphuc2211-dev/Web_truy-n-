@@ -7,15 +7,21 @@ import Detail from './pages/Detail'
 import Reader from './pages/Reader'
 import { AuthorPage, Forum, GuildPage, Guilds, PostPage } from './pages/Community'
 import {
-  FollowAuthors, FollowGroups, HistoryPage, LoginPage, MyAlbums, NotFound,
-  Notifications, Saved, SecurityPage, SettingsPage, UploadPage,
+  FollowAuthors, FollowedStories, FollowGroups, HistoryPage, MyAlbums, NotFound,
+  Notifications, SecurityPage, SettingsPage, UploadPage,
 } from './pages/Account'
+import { AuthLayout, LoginPage, RegisterPage, VerifyEmailPage } from './pages/Auth'
 
 export default function App() {
   return (
     <StoreProvider>
       <BrowserRouter>
         <Routes>
+          <Route element={<AuthLayout />}>
+            <Route path="/dang-nhap" element={<LoginPage />} />
+            <Route path="/dang-ky" element={<RegisterPage />} />
+            <Route path="/xac-minh-email" element={<VerifyEmailPage />} />
+          </Route>
           <Route element={<Shell />}>
             <Route path="/" element={<Home />} />
             <Route path="/danh-sach" element={<Library />} />
@@ -31,14 +37,13 @@ export default function App() {
             <Route path="/nhom-dich" element={<Guilds />} />
             <Route path="/nhom-dich/:id" element={<GuildPage />} />
             <Route path="/tac-gia/:id" element={<AuthorPage />} />
-            <Route path="/da-luu" element={<Saved />} />
+            <Route path="/theo-doi/truyen" element={<FollowedStories />} />
             <Route path="/lich-su" element={<HistoryPage />} />
             <Route path="/album-cua-ban" element={<MyAlbums />} />
             <Route path="/theo-doi/tac-gia" element={<FollowAuthors />} />
             <Route path="/theo-doi/dich-gia" element={<FollowGroups />} />
             <Route path="/cai-dat" element={<SettingsPage />} />
             <Route path="/bao-mat" element={<SecurityPage />} />
-            <Route path="/dang-nhap" element={<LoginPage />} />
             <Route path="/dang-truyen" element={<UploadPage />} />
             <Route path="/thong-bao" element={<Notifications />} />
             <Route path="*" element={<NotFound />} />

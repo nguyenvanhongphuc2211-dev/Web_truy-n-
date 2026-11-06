@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Bookmark, Eye, Heart, Library, Play } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Bell, Bookmark, Eye, Heart, Library, Play, Star } from 'lucide-react'
 import Cover from '../components/Cover'
 import { MangaGrid } from '../components/Bits'
-import { authorOf, compact, countByAuthor, countByGroup, genreName, groupOf, seedComments } from '../data'
+import Comments from '../components/Comments'
+import { authorOf, chapterViewCount, compact, countByAuthor, countByGroup, genreName, groupOf } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 
@@ -12,8 +13,10 @@ export default function Detail() {
   const catalog = useCatalog()
   const manga = catalog.find((item) => item.id === id)
   const store = useStore()
+  const navigate = useNavigate()
   const [tab, setTab] = useState('chapters')
-  const [text, setText] = useState('')
+  const [jump, setJump] = useState('')
+  const [jumpError, setJumpError] = useState('')
   const [albumOpen, setAlbumOpen] = useState(false)
   const [albumName, setAlbumName] = useState('')
   const manual = /^Truyện \d+$/.test(manga?.title || '')
@@ -29,15 +32,28 @@ export default function Detail() {
 
   if (!manga) return <div className="empty">Không tìm thấy truyện.</div>
 
-  const author = authorOf(manga)
-  const group = groupOf(manga)
-  const saved = store.saved.includes(manga.id)
+  const author = authorOf(manga, store.authors)
+  const group = groupOf(manga, store.groups)
   const liked = store.likes.includes(manga.id)
+  const following = (store.follows || []).includes(manga.id)
+  const mine = store.ratings?.[manga.id] || 0
   const history = store.history.find((item) => item.mangaId === manga.id)
-  const firstChapter = manga.chapters.find((chapter) => chapter.id === 1) || manga.chapters[manga.chapters.length - 1]
-  const continueChapter = manga.chapters.find((chapter) => chapter.id === history?.chapterId) || firstChapter
-  const comments = [...(store.comments[manga.id] || []), ...(seedComments[manga.id] || [])]
-  const related = catalog.filter((item) => item.id !== manga.id && item.genres.some((genre) => manga.genres.includes(genre))).slice(0, 5)
+  const chapters = manga.chapters || []
+  const firstChapter = chapters.find((chapter) => chapter.id === 1) || chapters[chapters.length - 1]
+  const continueChapter = chapters.find((chapter) => chapter.id === history?.chapterId) || firstChapter
+  const comments = store.comments[manga.id] || []
+  const related = catalog.filter((item) => item.id !== manga.id && item.genres?.some((genre) => manga.genres?.includes(genre))).slice(0, 5)
+
+  function goChapter(event) {
+    event.preventDefault()
+    const number = Number(jump)
+    const found = chapters.find((chapter) => chapter.id === number)
+    if (!found) {
+      setJumpError('Không có chương này.')
+      return
+    }
+    navigate(`/doc/${manga.id}/${found.id}`)
+  }
 
   function createAlbum(event) {
     event.preventDefault()
@@ -63,11 +79,12 @@ export default function Detail() {
         <div>
           <div className="detail-cover"><Cover manga={manga} /></div>
           <div className="detail-actions">
-            <Link className="btn btn-pink" to={`/doc/${manga.id}/${continueChapter.id}`}>
-              <Play size={16} /> {history ? `Đọc tiếp chương ${continueChapter.id}` : 'Bắt đầu đọc'}
+            <Link className="btn btn-pink" to={`/doc/${manga.id}/${continueChapter?.id || 1}`}>
+              <Play size={16} /> {history ? `Đọc tiếp chương ${continueChapter?.id}` : 'Bắt đầu đọc'}
             </Link>
-            <button className={`btn ${saved ? 'btn-line' : 'btn-line'}`} type="button" onClick={() => store.toggleSave(manga.id)}>
-              <Bookmark size={16} /> {saved ? 'Đã lưu' : 'Lưu truyện'}
+            <Link className="btn btn-ghost" to={`/doc/${manga.id}/${firstChapter?.id || 1}`}>Đọc từ đầu</Link>
+            <button className={`btn ${following ? 'btn-line' : 'btn-ghost'}`} type="button" aria-pressed={following} onClick={() => store.toggleFollow(manga.id)}>
+              <Bell size={16} /> {following ? 'Đang theo dõi' : 'Theo dõi'}
             </button>
             <button className="btn btn-ghost" type="button" onClick={() => setAlbumOpen(true)}>
               <Library size={16} /> Thêm vào album
@@ -79,22 +96,31 @@ export default function Detail() {
           <p className="alt">Tên khác: {manga.alt}</p>
           <p><Link to={`/tac-gia/${author.id}`}>{author.name}</Link> · {manga.kind} · {manga.status}</p>
           <div className="stat-row">
-            <button className="stat" type="button" onClick={() => store.toggleLike(manga.id)}>
-              <Heart size={18} color={liked ? '#ff4e9b' : '#9a90a4'} fill={liked ? '#ff4e9b' : 'none'} />
-              <span><b>{compact(manga.likes + (liked ? 1 : 0))}</b><span>LƯỢT THÍCH</span></span>
+            <button className="stat" type="button" aria-pressed={liked} onClick={() => store.toggleLike(manga.id)} style={{ cursor: 'pointer' }}>
+              <Heart className={`stat-like ${liked ? 'on' : ''}`} size={18} fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
+              <span><b>{compact(manga.likes)}</b><span>LƯỢT THÍCH</span></span>
             </button>
             <div className="stat">
-              <Bookmark size={18} color="#7aa2ff" />
-              <span><b>{compact(manga.follows + (saved ? 1 : 0))}</b><span>THEO DÕI</span></span>
+              <Bookmark className="stat-save" size={18} aria-hidden="true" />
+              <span><b>{compact(manga.follows)}</b><span>THEO DÕI</span></span>
             </div>
             <div className="stat">
-              <Eye size={18} color="#3dce8a" />
-              <span><b>{compact(manga.views)}</b><span>LƯỢT XEM</span></span>
+              <Eye className="stat-view" size={18} aria-hidden="true" />
+              <span><b>{compact(manga.views)}</b><span>NGƯỜI ĐỌC</span></span>
             </div>
           </div>
+          <div className="score-row" role="group" aria-label="Đánh giá sao">
+            <span><b>{mine ? `${mine}/5` : '—'}</b></span>
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button key={value} type="button" className={value <= mine ? 'on' : ''} aria-label={`${value} sao`} aria-pressed={mine === value} onClick={() => store.rateManga(manga.id, value)}>
+                <Star size={18} fill={value <= mine ? 'currentColor' : 'none'} />
+              </button>
+            ))}
+            <span className="meta">{mine ? `Điểm của bạn ${mine}/5` : 'Chưa có đánh giá'}</span>
+          </div>
           <div className="tags">
-            {manga.genres.map((slug) => (
-              <Link key={slug} to={`/the-loai/${slug}`} className="chip">{genreName(slug)}</Link>
+            {(manga.genres || []).map((slug) => (
+              <Link key={slug} to={`/the-loai/${slug}`} className="chip">{genreName(slug, store.genres)}</Link>
             ))}
           </div>
           {manual && (
@@ -110,7 +136,7 @@ export default function Detail() {
                   chapters: undefined,
                   title,
                   alt: title,
-                  authorName: editAuthor.trim() || 'Chưa ghi trên bìa',
+                  authorName: editAuthor.trim() || 'đang cập nhật',
                   authorId: 'chua-ro',
                   blurb: editBlurb.trim() || title,
                   description: editBlurb.trim() || manga.description,
@@ -157,36 +183,30 @@ export default function Detail() {
           </div>
 
           <div className="tabs-line">
-            <button className={tab === 'chapters' ? 'on' : ''} type="button" onClick={() => setTab('chapters')}>Danh sách chương · {manga.chapters.length}</button>
+            <button className={tab === 'chapters' ? 'on' : ''} type="button" onClick={() => setTab('chapters')}>Danh sách chương · {chapters.length}</button>
             <button className={tab === 'comments' ? 'on' : ''} type="button" onClick={() => setTab('comments')}>Bình luận · {comments.length}</button>
           </div>
           {tab === 'chapters' ? (
             <div className="chap-list">
-              {manga.chapters.map((chapter) => (
+              <form className="row" onSubmit={goChapter} style={{ marginBottom: 12 }}>
+                <label className="lbl grow">Đi tới chương
+                  <input className="input" inputMode="numeric" aria-label="Đi tới chương" placeholder="Số chương" value={jump} onChange={(event) => { setJump(event.target.value); setJumpError('') }} />
+                </label>
+                <button className="btn btn-pink" type="submit">Tới</button>
+              </form>
+              {jumpError && <p className="muted">{jumpError}</p>}
+              {chapters.map((chapter) => (
                 <Link key={chapter.id} to={`/doc/${manga.id}/${chapter.id}`} className={`chap ${store.seen.includes(`${manga.id}:${chapter.id}`) ? 'read' : ''}`}>
                   <span>
                     <b>{chapter.title}</b>
                     <span className="meta" style={{ display: 'block' }}>{chapter.time}</span>
                   </span>
-                  <span className="views"><Heart size={13} /> {chapter.likes}</span>
+                  <span className="views"><Eye size={13} /> {compact(chapterViewCount(manga, chapter))} người đọc</span>
                 </Link>
               ))}
             </div>
           ) : (
-            <div>
-              <form className="row" onSubmit={(event) => { event.preventDefault(); store.addComment(manga.id, text); setText('') }}>
-                <input className="input" placeholder="Viết bình luận..." value={text} onChange={(e) => setText(e.target.value)} />
-                <button className="btn btn-pink" type="submit">Gửi</button>
-              </form>
-              {comments.map((comment) => (
-                <div key={comment.id} className="comment">
-                  <b>{comment.user}</b>
-                  <span className="meta">{comment.at}</span>
-                  <p style={{ margin: '6px 0 0' }}>{comment.text}</p>
-                </div>
-              ))}
-              {!comments.length && <div className="empty">Chưa có bình luận.</div>}
-            </div>
+            <Comments manga={manga} />
           )}
         </div>
       </article>
@@ -209,7 +229,7 @@ export default function Detail() {
               </button>
             ))}
             <form onSubmit={createAlbum} className="row" style={{ marginTop: 12 }}>
-              <input className="input" placeholder="Tên album mới" value={albumName} onChange={(e) => setAlbumName(e.target.value)} />
+              <input className="input" aria-label="Tên album mới" placeholder="Tên album mới" value={albumName} onChange={(e) => setAlbumName(e.target.value)} />
               <button className="btn btn-pink" type="submit">Tạo</button>
             </form>
           </div>

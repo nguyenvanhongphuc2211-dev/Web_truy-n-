@@ -1,0 +1,46 @@
+/* Giao diện điện thoại. Chỉ ghi đè khi màn hình hẹp. File này được nạp sau desktop.css. */
+
+@container (max-width: 720px) {
+  .hero { height: auto; grid-template-columns: 1fr; }
+  .hero-actions { margin-top: var(--space-5); }
+  .hero-cover { width: min(200px, 100%); justify-self: start; }
+}
+
+@media (max-width: 1100px) {
+  .grid-manga { grid-template-columns: repeat(4, 1fr); }
+  .foot-grid, .people, .album-grid { grid-template-columns: 1fr 1fr; }
+  .split { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .menu-btn { display: inline-flex; }
+  .sidebar { position: fixed; left: 0; transform: translateX(-105%); transition: transform var(--dur) var(--ease); }
+  .app.nav-open .sidebar { transform: none; }
+  .app.nav-open .scrim { display: block; position: fixed; inset: 0; background: var(--scrim); z-index: 25; }
+  .detail, .form-grid, .stat-row { grid-template-columns: 1fr; }
+  .hero { padding: var(--space-6); }
+  .grid-manga { grid-template-columns: repeat(3, 1fr); }
+  .content { width: min(1180px, calc(100% - 24px)); }
+  .topbar { padding: var(--space-3) var(--space-3) 0; }
+}
+
+@media (max-width: 720px) {
+  .novel-sheet { padding: 28px 18px 20px; }
+  .novel-sheet h2 { font-size: 22px; }
+  .novel-body p { font-size: 17px; }
+}
+
+@media (max-width: 640px) {
+  .filters .input, .filters select { flex: 1 1 140px; min-width: 0; }
+  .grid-manga, .album-grid, .guild-grid, .today-grid, .foot-grid { grid-template-columns: 1fr 1fr; }
+  .grid-manga { gap: var(--space-4) var(--space-3); }
+  .people { grid-template-columns: 1fr; }
+  .foot-grid { grid-template-columns: 1fr; }
+  .hide-sm { display: none; }
+  .hero { padding: var(--space-5); }
+}
+
+@media (pointer: coarse) {
+  .quick a, .quick button, .nav-link, .nav-btn, .tab, .chip, .check-grid label { min-height: var(--tap); }
+  .collapse { width: var(--tap); height: var(--tap); }
+}

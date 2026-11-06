@@ -652,7 +652,7 @@ export const generatedStories = [
     "title": "Tiểu Khu Cầu Sinh: Mỗi Người Mỗi Ngày Cho Ta Một Chiếc Bánh Mì",
     "alt": "Tiểu Khu Cầu Sinh: Mỗi Người Mỗi Ngày Cho Ta Một Chiếc Bánh Mì",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -1113,7 +1113,7 @@ export const generatedStories = [
     "title": "Ngự Thú Tiên Triều",
     "alt": "御兽仙朝",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -1202,7 +1202,7 @@ export const generatedStories = [
     "title": "Kim Đan Là Hằng Tinh, Người Gọi Đây Là Tu Tiên?",
     "alt": "Kim Đan Là Hằng Tinh, Người Gọi Đây Là Tu Tiên?",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -1294,7 +1294,7 @@ export const generatedStories = [
     "title": "Truyền thuyết từ Bạch Lộc bắt đầu",
     "alt": "Truyền thuyết từ Bạch Lộc bắt đầu",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -1472,7 +1472,7 @@ export const generatedStories = [
     "title": "Cấp Cấp Như Luật Lệnh",
     "alt": "Cấp Cấp Như Luật Lệnh",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -1656,7 +1656,7 @@ export const generatedStories = [
     "title": "Nhân Tộc Cấm Địa",
     "alt": "Nhân Tộc Cấm Địa",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -1837,7 +1837,7 @@ export const generatedStories = [
     "title": "Ta Có Trình Chỉnh Sửa Công Pháp",
     "alt": "Ta Có Trình Chỉnh Sửa Công Pháp",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -1929,7 +1929,7 @@ export const generatedStories = [
     "title": "Ta Thực Sự Không Muốn Trọng Sinh a",
     "alt": "Ta Thực Sự Không Muốn Trọng Sinh a",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "xuyen-khong"
     ],
@@ -2018,7 +2018,7 @@ export const generatedStories = [
     "title": "Tu Tiên: Cứ Mười Năm Lại Có Một Thiên Phú Mới",
     "alt": "Tu Tiên: Cứ Mười Năm Lại Có Một Thiên Phú Mới",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -2202,7 +2202,7 @@ export const generatedStories = [
     "title": "Trùng Sinh Thần Khổng Lồ Titan, Tế Bào Của Ta Tất Cả Đều Là Người Chơi",
     "alt": "Trùng Sinh Thần Khổng Lồ Titan, Tế Bào Của Ta Tất Cả Đều Là Người Chơi",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -2294,7 +2294,7 @@ export const generatedStories = [
     "title": "Linh Nguyên Tiên Đồ: Ta Nuôi Linh Thú Quá Hiểu Cảm Ân",
     "alt": "Linh Nguyên Tiên Đồ: Ta Nuôi Linh Thú Quá Hiểu Cảm Ân",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -2386,7 +2386,7 @@ export const generatedStories = [
     "title": "SINH VẬT DỊ THƯỜNG KIẾN VĂN LỤC",
     "alt": "SINH VẬT DỊ THƯỜNG KIẾN VĂN LỤC",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -2656,7 +2656,7 @@ export const generatedStories = [
     "title": "Ma Thổi Đèn",
     "alt": "Ma Thổi Đèn",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -2745,7 +2745,7 @@ export const generatedStories = [
     "title": "Luân Hồi Vạn Giới, Vạn Ức Thần Thoại Thuộc Tính Gia Thân!",
     "alt": "Luân Hồi Vạn Giới, Vạn Ức Thần Thoại Thuộc Tính Gia Thân!",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -3019,7 +3019,7 @@ export const generatedStories = [
     "title": "Ta có một tòa Động Vật Hoang Dã Viên",
     "alt": "Ta có một tòa Động Vật Hoang Dã Viên",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -3109,7 +3109,7 @@ export const generatedStories = [
     "title": "Ta 1995 Tiểu Nông Trang",
     "alt": "Ta 1995 Tiểu Nông Trang",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -3199,7 +3199,7 @@ export const generatedStories = [
     "title": "Phi Thường Mỹ Thực Ký",
     "alt": "Đến Đến Đến Đến Đến",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -3289,7 +3289,7 @@ export const generatedStories = [
     "title": "Lâm Thánh",
     "alt": "Lâm Thánh",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupId": "com-nguoi",
     "groupName": "Cơm Nguội Novel",
     "translator": "Cơm Nguội",
@@ -3381,7 +3381,7 @@ export const generatedStories = [
     "title": "Bắc Điện Người Gác Cổng Giải Trí Chi Ác Ma Hệ Thống",
     "alt": "Bắc Điện Người Gác Cổng Giải Trí Chi Ác Ma Hệ Thống",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "he-thong"
@@ -3471,7 +3471,7 @@ export const generatedStories = [
     "title": "Trường Sinh Cổ Đạo: Theo Luyện Ra Si Tinh Cổ Bắt Đầu",
     "alt": "一虫一世界",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -7071,7 +7071,7 @@ export const generatedStories = [
     "title": "Trò Chơi Hệ Chúa Trị Của Tôi",
     "alt": "Trò Chơi Hệ Chúa Trị Của Tôi",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "he-thong"
     ],
@@ -7430,7 +7430,7 @@ export const generatedStories = [
     "title": "Thần Thống Giả",
     "alt": "Thần Thống Giả",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -8240,7 +8240,7 @@ export const generatedStories = [
     "title": "【Siêu Thần】Bắt Đầu Đánh Dấu Kim Giác Cự Thú Khuôn Mẫu",
     "alt": "【Siêu Thần】Bắt Đầu Đánh Dấu Kim Giác Cự Thú Khuôn Mẫu",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -8420,7 +8420,7 @@ export const generatedStories = [
     "title": "Toàn Cầu Dị Năng: Bắt Đầu Thức Tỉnh Tử Tiêu Thần Lôi",
     "alt": "Kim văn phong nhi thậm thị huyền hiệu",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "Truyện Dịch Miễn Phí",
     "genres": [
       "tien-hiep"
@@ -10036,7 +10036,7 @@ export const generatedStories = [
     "title": "Vòng Du: Từ Giết Chết Chung Cục Boss Bắt Đầu",
     "alt": "Vòng Du Đại Tiên",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -11193,7 +11193,7 @@ export const generatedStories = [
     "title": "Đẳng Hoa Tiếu",
     "alt": "Đẳng Hoa Tiếu",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -11371,7 +11371,7 @@ export const generatedStories = [
     "title": "Quả Ngọt Năm Tháng",
     "alt": "Quả Ngọt Năm Tháng",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -11816,7 +11816,7 @@ export const generatedStories = [
     "title": "Ta Tại Tận Thế Livestream Giám Định Bảo Vật",
     "alt": "Ta Tại Tận Thế Livestream Giám Định Bảo Vật",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "mat-the"
     ],
@@ -12172,7 +12172,7 @@ export const generatedStories = [
     "title": "Đấu La Đại Lục",
     "alt": "Đấu La Đại Lục",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -12261,7 +12261,7 @@ export const generatedStories = [
     "title": "TỪ DÃ QUÁI BẮT ĐẦU TIẾN HÓA THĂNG CẤP",
     "alt": "MỆNH CẤP NHI HÀNH BẤT HẠNH",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -12350,7 +12350,7 @@ export const generatedStories = [
     "title": "Ta Thuyền Đánh Cá Vô Hạn Thăng Cấp",
     "alt": "Ta Thuyền Đánh Cá Vô Hạn Thăng Cấp",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],
@@ -12528,7 +12528,7 @@ export const generatedStories = [
     "title": "THEO GIA PHẢ Bắt Đầu Chế Tạo TRƯỜNG SINH THẾ GIA",
     "alt": "THEO GIA PHẢ Bắt Đầu Chế Tạo TRƯỜNG SINH THẾ GIA",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "groupName": "GIANG LÃO TỬ",
     "genres": [
       "tien-hiep"
@@ -12707,7 +12707,7 @@ export const generatedStories = [
     "title": "TỐI CƯỜNG Phản Phái Hệ Thống",
     "alt": "TỐI CƯỜNG Phản Phái Hệ Thống",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "he-thong"
     ],
@@ -13242,7 +13242,7 @@ export const generatedStories = [
     "title": "ĐI BIỂN BẮT HẢI SẢN Bắt Đầu Một Thanh Cát Xúc Nhận Thầu Toàn Bộ Bãi Cát",
     "alt": "ĐI BIỂN BẮT HẢI SẢN Bắt Đầu Một Thanh Cát Xúc Nhận Thầu Toàn Bộ Bãi Cát",
     "authorId": "chua-ro",
-    "authorName": "Chưa ghi trên bìa",
+    "authorName": "đang cập nhật",
     "genres": [
       "tien-hiep"
     ],

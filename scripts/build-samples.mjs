@@ -288,7 +288,7 @@ function storyFrom(meta) {
     title: meta.title,
     alt: meta.alt || meta.title,
     authorId: authorId || 'chua-ro',
-    authorName: meta.author || 'Chưa ghi trên bìa',
+    authorName: meta.author || 'đang cập nhật',
     groupId: com ? 'com-nguoi' : undefined,
     groupName: com ? 'Cơm Nguội Novel' : publisher || undefined,
     translator: com ? 'Cơm Nguội' : undefined,

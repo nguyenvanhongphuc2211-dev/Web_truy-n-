@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Settings, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Eye, List, Settings, X } from 'lucide-react'
 import Cover from '../components/Cover'
-import { pagesFor } from '../data'
+import Comments from '../components/Comments'
+import { chapterViewCount, compact, pagesFor } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 
@@ -11,6 +12,56 @@ const BACKGROUNDS = ['#0c0a10', '#16141c', '#efe6d6', '#f7f7f5']
 function novelParagraphs(chapter) {
   if (chapter.paragraphs?.length) return chapter.paragraphs
   return (chapter.lines || []).map((line) => (line.who === 'narr' ? line.text : `“${line.text}”`))
+}
+
+function ChapterTools({ manga, chapter, prevChapter, nextChapter }) {
+  const navigate = useNavigate()
+  const [jump, setJump] = useState('')
+  const [error, setError] = useState('')
+  const [listOpen, setListOpen] = useState(false)
+  const views = chapterViewCount(manga, chapter)
+
+  function go(event) {
+    event.preventDefault()
+    const found = manga.chapters.find((item) => item.id === Number(jump))
+    if (!found) {
+      setError('Không có chương này.')
+      return
+    }
+    navigate(`/doc/${manga.id}/${found.id}`)
+  }
+
+  return (
+    <div className="reader-tools">
+      <form className="row" onSubmit={go}>
+        <label className="lbl">Đi tới chương
+          <input className="input" inputMode="numeric" aria-label="Đi tới chương" placeholder="Số chương" value={jump} onChange={(event) => { setJump(event.target.value); setError('') }} />
+        </label>
+        <button className="btn btn-pink" type="submit">Tới</button>
+        <span className="views"><Eye size={14} /> {compact(views)} người đọc</span>
+      </form>
+      {error && <p className="muted">{error}</p>}
+      <div className="novel-nav">
+        {prevChapter ? (
+          <Link className="btn btn-ghost" to={`/doc/${manga.id}/${prevChapter.id}`}>Trước</Link>
+        ) : <span className="btn btn-ghost" style={{ opacity: 0.45 }}>Trước</span>}
+        <button className="btn btn-line" type="button" onClick={() => setListOpen((value) => !value)}><List size={16} /> Danh sách chương</button>
+        {nextChapter ? (
+          <Link className="btn btn-pink" to={`/doc/${manga.id}/${nextChapter.id}`}>Sau</Link>
+        ) : <span className="muted">Hết chương</span>}
+      </div>
+      {listOpen && (
+        <div className="chap-list panel" style={{ padding: 8, marginTop: 8 }}>
+          {manga.chapters.map((item) => (
+            <Link key={item.id} to={`/doc/${manga.id}/${item.id}`} className={`chap ${item.id === chapter.id ? 'read' : ''}`}>
+              <b>{item.title}</b>
+              <span className="views">{compact(chapterViewCount(manga, item))}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function NovelChapter({ manga, chapter, prevChapter, nextChapter, store, open, setOpen, navigate }) {
@@ -55,16 +106,11 @@ function NovelChapter({ manga, chapter, prevChapter, nextChapter, store, open, s
         <div className="novel-body">
           {paragraphs.map((text, index) => <p key={index}>{text}</p>)}
         </div>
-        <div className="novel-nav">
-          {prevChapter ? (
-            <Link className="btn btn-ghost" to={`/doc/${manga.id}/${prevChapter.id}`}>Chương trước</Link>
-          ) : <span className="btn btn-ghost" style={{ opacity: 0.45 }}>Chương trước</span>}
-          <Link className="btn btn-line" to={`/truyen/${manga.id}`}>Mục lục</Link>
-          {nextChapter ? (
-            <Link className="btn btn-pink" to={`/doc/${manga.id}/${nextChapter.id}`}>Chương sau</Link>
-          ) : <span className="muted">Hết chương đã mở</span>}
-        </div>
+        <ChapterTools manga={manga} chapter={chapter} prevChapter={prevChapter} nextChapter={nextChapter} />
       </article>
+      <div style={{ maxWidth: store.settings.width, margin: '0 auto 48px' }}>
+        <Comments manga={manga} chapterId={chapter.id} />
+      </div>
     </div>
   )
 }
@@ -72,15 +118,20 @@ function NovelChapter({ manga, chapter, prevChapter, nextChapter, store, open, s
 export default function Reader() {
   const { id, chapter: chapterParam } = useParams()
   const catalog = useCatalog()
+  const store = useStore()
   const manga = catalog.find((item) => item.id === id)
   const chapterId = Number(chapterParam)
-  const chapter = manga?.chapters.find((item) => item.id === chapterId)
-  const store = useStore()
+  const chapter = manga?.chapters?.find((item) => item.id === chapterId)
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const [open, setOpen] = useState(false)
+  const waitingForBody = manga?.kind === 'Tiểu thuyết' && chapter && !chapter.paragraphs?.length && !chapter.lines?.length
   const pages = manga && chapter ? pagesFor(manga, chapter) : []
   useTitle(manga && chapter ? `${manga.title} · Chương ${chapter.id}` : 'Đọc truyện')
+
+  useEffect(() => {
+    if (id && chapterParam) store.loadChapter(id, chapterParam)
+  }, [id, chapterParam, store.loadChapter])
 
   const nextChapter = manga?.chapters.find((item) => item.id === chapterId + 1)
   const prevChapter = manga?.chapters.find((item) => item.id === chapterId - 1)
@@ -117,6 +168,7 @@ export default function Reader() {
   })
 
   if (!manga || !chapter) return <div className="empty">Không thấy chương này.</div>
+  if (waitingForBody) return <div className="empty">Đang tải chương…</div>
 
   if (manga.kind === 'Tiểu thuyết') {
     return (
@@ -201,10 +253,8 @@ export default function Reader() {
             </div>
           )}
           <p>Hết phần đang mở của chương {chapter.id}.</p>
-          <div className="row" style={{ justifyContent: 'center' }}>
-            {nextChapter ? <Link className="btn btn-pink" to={`/doc/${manga.id}/${nextChapter.id}`}>Sang chương {nextChapter.id}</Link> : <span className="muted">Bạn đang ở chương mới nhất.</span>}
-            <Link className="btn btn-ghost" to={`/truyen/${manga.id}`}>Về danh sách chương</Link>
-          </div>
+          <ChapterTools manga={manga} chapter={chapter} prevChapter={prevChapter} nextChapter={nextChapter} />
+          <Comments manga={manga} chapterId={chapter.id} />
           <p className="meta">Phím ← → đổi trang hoặc chương. Esc để thoát.</p>
         </div>
       </div>

@@ -15,7 +15,7 @@ export const genres = [...BASE_GENRES, ...generatedGenres].filter(
 
 export const authors = [
   ...generatedAuthors,
-  { id: 'chua-ro', name: 'Chưa ghi trên bìa' },
+  { id: 'chua-ro', name: 'đang cập nhật' },
   { id: 'bat-thi', name: 'Bất Thị Đại Ba Ti Cơ' },
   { id: 'lan-anh', name: 'Lan Anh' },
   { id: 'mio-k', name: 'Mio K.' },
@@ -52,6 +52,7 @@ const CHAPTER_TITLES = [
 const RAW = posterMangas
 
 export function withChapters(manga) {
+  if (manga.chapters?.length) return manga
   const count = manga.chapterCount || 1
   const chapters = []
   for (let n = count; n >= 1; n -= 1) {
@@ -59,7 +60,8 @@ export function withChapters(manga) {
       id: n,
       title: `Chương ${n}: ${CHAPTER_TITLES[(n + manga.title.length) % CHAPTER_TITLES.length]}`,
       time: n === count ? manga.updated : `${count - n + 2} ngày trước`,
-      likes: 12 + ((n * 17 + (manga.views || 0)) % 90),
+      likes: 0,
+      views: 0,
     })
   }
   return { ...manga, chapters }
@@ -72,49 +74,6 @@ export const mangas = RAW.map(withChapters).map((manga) => {
   const patch = storyPatches.get(manga.id)
   return patch ? { ...manga, ...patch } : manga
 })
-
-export const communityAlbums = [
-  {
-    id: 'mua',
-    name: 'Đọc khi trời mưa',
-    owner: 'Lan',
-    desc: 'Truyện chậm, nhiều khoảng lặng và cửa sổ.',
-    reactions: 128,
-    mangaIds: [],
-  },
-  {
-    id: 'ngot',
-    name: 'Ngọt cuối tuần',
-    owner: 'Mochi',
-    desc: 'Hài nhẹ, có bếp và có người nấu thừa một suất.',
-    reactions: 96,
-    mangaIds: [],
-  },
-  {
-    id: 'dem',
-    name: 'Đêm văn phòng',
-    owner: 'K.',
-    desc: 'Đèn bàn, deadline, và những câu nói sau mười một giờ.',
-    reactions: 74,
-    mangaIds: [],
-  },
-  {
-    id: 'dao',
-    name: 'Đi một vòng rồi về',
-    owner: 'Haru',
-    desc: 'Fantasy dịu, không cần bảng stat.',
-    reactions: 61,
-    mangaIds: [],
-  },
-  {
-    id: 'pho',
-    name: 'Phố chưa tắt đèn',
-    owner: 'Rin',
-    desc: 'Thành phố, biển hiệu, phòng trọ và tiệm mở khuya.',
-    reactions: 83,
-    mangaIds: [],
-  },
-]
 
 export const seedPosts = [
   {
@@ -183,7 +142,7 @@ export const notices = [
   {
     id: 'n4',
     title: 'Chào mừng đến MOCHI',
-    body: 'Đây là bản frontend. Dữ liệu lưu trên trình duyệt của bạn.',
+    body: 'Kệ truyện lấy từ máy chủ. Đăng nhập, lưu truyện và bình luận vẫn nằm trên trình duyệt của bạn.',
     time: 'Hôm nay',
     href: '/cai-dat',
   },
@@ -191,19 +150,23 @@ export const notices = [
 
 export const seedComments = {}
 
-export function authorOf(manga) {
-  return (
-    authors.find((a) => a.id === manga.authorId) || {
-      id: manga.authorId || 'an-danh',
-      name: manga.authorName || 'Ẩn danh',
-      works: 0,
-    }
-  )
+export function authorLabel(name) {
+  return name === 'Chưa ghi trên bìa' ? 'đang cập nhật' : name
 }
 
-export function groupOf(manga) {
+export function authorOf(manga, list = authors) {
+  const found = list.find((author) => author.id === manga.authorId)
+  if (found) return { ...found, name: authorLabel(found.name) }
+  return {
+    id: manga.authorId || 'an-danh',
+    name: authorLabel(manga.authorName) || 'Ẩn danh',
+    works: 0,
+  }
+}
+
+export function groupOf(manga, list = groups) {
   return (
-    groups.find((g) => g.id === manga.groupId) || {
+    list.find((g) => g.id === manga.groupId) || {
       id: manga.groupId || 'doc-lap',
       name: manga.groupName || 'Độc lập',
       members: 1,
@@ -212,12 +175,12 @@ export function groupOf(manga) {
   )
 }
 
-export function genreName(slug) {
-  return genres.find((g) => g.slug === slug)?.name || slug
+export function genreName(slug, list = genres) {
+  return list.find((g) => g.slug === slug)?.name || slug
 }
 
-export function genresWithCounts(list) {
-  return genres.map((genre) => ({
+export function genresWithCounts(list, genreList = genres) {
+  return genreList.map((genre) => ({
     ...genre,
     count: list.filter((manga) => manga.genres?.includes(genre.slug)).length,
   }))
@@ -246,6 +209,87 @@ export function compact(n) {
     return `${(v >= 10 ? Math.round(v) : Number(v.toFixed(1))).toString()}K`
   }
   return String(value)
+}
+
+export function newestChapters(manga, count = 2) {
+  return [...(manga?.chapters || [])].sort((a, b) => b.id - a.id).slice(0, count)
+}
+
+export function chapterViewCount(_manga, chapter) {
+  return Number(chapter?.views) || 0
+}
+
+export function communityScore(manga) {
+  const count = Number(manga?.ratingCount) || 0
+  const score = Number(manga?.rating)
+  if (!count || !Number.isFinite(score)) return null
+  return Math.round(score * 10) / 10
+}
+
+export const storyStatuses = [
+  { id: 'chua-bat-dau', label: 'Chưa bắt đầu', values: ['Chưa bắt đầu'] },
+  { id: 'dang-lam', label: 'Đang làm', values: ['Đang làm', 'Đang ra'] },
+  { id: 'hoan', label: 'Hoãn', values: ['Hoãn'] },
+  { id: 'da-dung', label: 'Đã dừng', values: ['Đã dừng', 'Tạm dừng'] },
+  { id: 'hoan-thanh', label: 'Hoàn thành', values: ['Hoàn thành'] },
+]
+
+export function storyStatus(manga) {
+  const raw = manga?.status || ''
+  return storyStatuses.find((item) => item.values.includes(raw)) || { id: 'dang-lam', label: raw || 'Đang làm' }
+}
+
+export function isTextNovel(manga) {
+  if (manga?.kind === 'Tiểu thuyết') return true
+  return (manga?.chapters || []).some((chapter) => chapter.paragraphs?.length)
+}
+
+export function updatedRank(text = '') {
+  const value = String(text)
+  const hour = value.match(/(\d+)\s*giờ/)
+  if (hour) return Number(hour[1])
+  const day = value.match(/(\d+)\s*ngày/)
+  if (day) return 24 * Number(day[1])
+  if (/hôm nay|vừa/i.test(value)) return 0
+  return 900
+}
+
+export function addedRank(manga) {
+  const match = String(manga?.id || '').match(/(\d{10,})/)
+  return match ? Number(match[1]) : 0
+}
+
+export function chapterNotices(catalog, follows, seen) {
+  const notes = []
+  for (const id of follows || []) {
+    const manga = catalog.find((item) => item.id === id)
+    if (!manga) continue
+    const latest = newestChapters(manga, 1)[0]
+    if (!latest) continue
+    const seenIds = (seen || [])
+      .filter((key) => key.startsWith(`${id}:`))
+      .map((key) => Number(key.split(':')[1]))
+      .filter((value) => Number.isFinite(value))
+    const known = seenIds.length ? Math.max(...seenIds) : 0
+    if (latest.id <= known) continue
+    notes.push({
+      id: `new-${id}-${latest.id}`,
+      title: `Chương mới · ${manga.title}`,
+      body: `${latest.title} vừa có trên bộ bạn theo dõi.`,
+      time: latest.time || 'Mới',
+      href: `/doc/${id}/${latest.id}`,
+    })
+  }
+  return notes
+}
+
+export function readerLevel(name, comments, historyLength) {
+  const written = Object.values(comments || {}).flat().filter((item) => item.user === name).length
+  const score = written + (historyLength || 0)
+  if (score >= 20) return 'Thủ thư'
+  if (score >= 8) return 'Đọc giả'
+  if (score >= 2) return 'Thành viên'
+  return 'Tân thủ'
 }
 
 export function hotScore(manga, period) {

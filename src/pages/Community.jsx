@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowUp, MessageCircle } from 'lucide-react'
 import { MangaGrid } from '../components/Bits'
-import { authors, countByGroup, groups, seedPosts } from '../data'
+import { countByGroup, seedPosts } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 
@@ -15,6 +15,7 @@ export function Forum() {
 
   function submit(event) {
     event.preventDefault()
+    if (!store.askLogin()) return
     if (!title.trim() || !excerpt.trim()) return
     store.addPost({
       id: `post-${Date.now()}`,
@@ -81,8 +82,8 @@ export function PostPage() {
         <p className="prose">{post.excerpt}</p>
       </article>
       <h2>Bình luận</h2>
-      <form className="row" onSubmit={(event) => { event.preventDefault(); store.addReply(post.id, text); setText('') }}>
-        <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Viết trả lời..." />
+      <form className="row" onSubmit={(event) => { event.preventDefault(); if (!store.askLogin()) return; store.addReply(post.id, text); setText('') }}>
+        <input className="input" value={text} onChange={(e) => setText(e.target.value)} aria-label="Trả lời" placeholder="Viết trả lời..." />
         <button className="btn btn-pink" type="submit">Gửi</button>
       </form>
       {replies.map((reply) => (
@@ -96,11 +97,12 @@ export function PostPage() {
 export function Guilds() {
   useTitle('Nhóm dịch')
   const catalog = useCatalog()
+  const { groups } = useStore()
   return (
     <div>
       <div className="page-head">
         <h1>Nhóm dịch</h1>
-        <p className="muted">Các nhóm trong dữ liệu mẫu.</p>
+        <p className="muted">Các nhóm dịch đang có trên kệ.</p>
       </div>
       <div className="guild-grid">
         {groups.map((group) => {
@@ -123,7 +125,7 @@ export function GuildPage() {
   const { id } = useParams()
   const catalog = useCatalog()
   const store = useStore()
-  const group = groups.find((item) => item.id === id)
+  const group = store.groups.find((item) => item.id === id)
   useTitle(group?.name || 'Nhóm dịch')
   if (!group) return <div className="empty">Không thấy nhóm này.</div>
   const items = catalog.filter((manga) => manga.groupId === group.id)
@@ -145,7 +147,7 @@ export function AuthorPage() {
   const { id } = useParams()
   const catalog = useCatalog()
   const store = useStore()
-  const author = authors.find((item) => item.id === id) || { id, name: catalog.find((manga) => manga.authorId === id)?.authorName || 'Tác giả' }
+  const author = store.authors.find((item) => item.id === id) || { id, name: catalog.find((manga) => manga.authorId === id)?.authorName || 'Tác giả' }
   useTitle(author.name)
   const items = catalog.filter((manga) => manga.authorId === id)
   const followed = store.followAuthors.includes(id)

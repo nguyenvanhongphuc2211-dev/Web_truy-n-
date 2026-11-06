@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell, Bookmark, BookOpen, ChevronDown, ChevronsLeft, Compass, FolderHeart,
-  History, Home, Images, Library, LogIn, Menu, MessagesSquare, Search, Settings,
-  Shield, SlidersHorizontal, Tags, Upload, UserRound, Users, X,
+  Bell, BookOpen, ChevronDown, ChevronsLeft, Compass, FolderHeart,
+  History, Home, Library, LogIn, Menu, MessagesSquare, Search, Settings,
+  Shield, SlidersHorizontal, Upload, UserRound, Users, X,
 } from 'lucide-react'
-import { fold, notices } from '../data'
+import { chapterNotices, fold, notices } from '../data'
 import { useCatalog, useStore } from '../store'
 import Cover from './Cover'
+import { ToastLine } from './Toast'
 
 const groups = [
   {
@@ -16,9 +17,7 @@ const groups = [
     icon: Compass,
     children: [
       { to: '/danh-sach', label: 'Danh sách truyện', icon: Library },
-      { to: '/the-loai', label: 'Thể loại', icon: Tags },
-      { to: '/album', label: 'Album cộng đồng', icon: Images },
-      { to: '/tim-kiem', label: 'Tìm kiếm nâng cao', icon: SlidersHorizontal },
+      { to: '/tim-kiem', label: 'Tìm truyện', icon: SlidersHorizontal },
     ],
   },
   {
@@ -26,7 +25,7 @@ const groups = [
     label: 'Thư viện của bạn',
     icon: BookOpen,
     children: [
-      { to: '/da-luu', label: 'Truyện đã lưu', icon: Bookmark },
+      { to: '/theo-doi/truyen', label: 'Truyện theo dõi', icon: Bell },
       { to: '/lich-su', label: 'Lịch sử đọc', icon: History },
       { to: '/album-cua-ban', label: 'Album của bạn', icon: FolderHeart },
       { to: '/theo-doi/tac-gia', label: 'Tác giả theo dõi', icon: UserRound },
@@ -63,7 +62,7 @@ function SideLink({ to, label, icon: Icon, onClick }) {
 }
 
 function Sidebar({ onSearch }) {
-  const { collapsed, toggleCollapsed, user } = useStore()
+  const { collapsed, toggleCollapsed, user, askLogin } = useStore()
   const [open, setOpen] = useState({ explore: true, library: true, community: true, account: true })
   return (
     <aside className="sidebar">
@@ -86,7 +85,11 @@ function Sidebar({ onSearch }) {
       <div className="side-scroll">
         <div className="quick">
           <Link to="/thong-bao" title="Thông báo"><Bell size={16} /> <span className="hide-collapsed">Thông báo</span></Link>
-          <Link to="/dang-truyen" title="Đăng truyện"><Upload size={16} /> <span className="hide-collapsed">Đăng truyện</span></Link>
+          {user ? (
+            <Link to="/dang-truyen" title="Đăng truyện"><Upload size={16} /> <span className="hide-collapsed">Đăng truyện</span></Link>
+          ) : (
+            <button type="button" title="Đăng truyện" onClick={() => askLogin()}><Upload size={16} /> <span className="hide-collapsed">Đăng truyện</span></button>
+          )}
         </div>
         <SideLink to="/" label="Trang chủ" icon={Home} />
         <button className="nav-btn" type="button" onClick={onSearch}>
@@ -146,7 +149,7 @@ function SearchModal({ onClose }) {
     <div className="modal-back" onClick={onClose}>
       <div className="modal" role="dialog" aria-label="Tìm kiếm" onClick={(e) => e.stopPropagation()}>
         <div className="row" style={{ marginBottom: 10 }}>
-          <input className="input" autoFocus placeholder="Tìm truyện, tác giả, từ khóa..." value={q} onChange={(e) => setQ(e.target.value)}
+          <input className="input" autoFocus aria-label="Tìm truyện" placeholder="Tìm truyện, tác giả, từ khóa..." value={q} onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 navigate(`/tim-kiem?q=${encodeURIComponent(q)}`)
@@ -171,33 +174,6 @@ function SearchModal({ onClose }) {
   )
 }
 
-function AgeGate() {
-  const { acceptAge } = useStore()
-  const [blocked, setBlocked] = useState(false)
-  return (
-    <div className="age">
-      <div className="age-card">
-        <div className="brand-lg">MOCHI</div>
-        {blocked ? (
-          <>
-            <h1>Hẹn gặp lại</h1>
-            <p className="muted">Phần đọc truyện này chỉ mở cho người đủ 18 tuổi.</p>
-          </>
-        ) : (
-          <>
-            <h1>Bạn đã đủ 18 tuổi?</h1>
-            <p className="muted">MOCHI là trang đọc truyện tranh dành cho người trưởng thành. Xác nhận tuổi trước khi vào.</p>
-            <div className="row" style={{ justifyContent: 'center' }}>
-              <button className="btn btn-pink" type="button" onClick={acceptAge}>Tôi đủ 18 tuổi</button>
-              <button className="btn btn-ghost" type="button" onClick={() => setBlocked(true)}>Thoát</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 function Footer() {
   return (
     <footer className="footer">
@@ -205,14 +181,12 @@ function Footer() {
         <div>
           <h2>Khám phá</h2>
           <Link to="/danh-sach">Danh sách truyện</Link>
-          <Link to="/the-loai">Thể loại</Link>
-          <Link to="/tim-kiem">Tìm kiếm nâng cao</Link>
+          <Link to="/tim-kiem">Tìm truyện</Link>
           <Link to="/nhom-dich">Nhóm dịch</Link>
-          <Link to="/album">Album công khai</Link>
         </div>
         <div>
           <h2>Cá nhân</h2>
-          <Link to="/da-luu">Truyện đã lưu</Link>
+          <Link to="/theo-doi/truyen">Truyện theo dõi</Link>
           <Link to="/lich-su">Lịch sử đọc</Link>
           <Link to="/album-cua-ban">Album của bạn</Link>
           <Link to="/cai-dat">Cài đặt đọc truyện</Link>
@@ -220,11 +194,11 @@ function Footer() {
         <div>
           <h2>Liên hệ</h2>
           <a href="mailto:hello@mochi.local">hello@mochi.local</a>
-          <p>Bản demo frontend. Không có máy chủ, không thu thập tài khoản thật.</p>
+          <p>Kệ truyện lấy từ API. Tài khoản và bình luận vẫn lưu trên trình duyệt này.</p>
         </div>
         <div>
           <h2>Về MOCHI</h2>
-          <p>MOCHI là giao diện đọc truyện tranh tiếng Việt làm bằng React, theo bố cục một trang đọc hiện đại: kệ truyện, thể loại, album, diễn đàn và trình đọc. Truyện trên trang là dữ liệu mẫu.</p>
+          <p>MOCHI là trang đọc truyện tranh tiếng Việt: kệ truyện, thể loại, album, diễn đàn và trình đọc. Catalog lấy từ MongoDB.</p>
         </div>
       </div>
       <p className="legal">© 2026 MOCHI. Nội dung 18+ — người dùng cần đủ tuổi theo quy định nơi mình sinh sống.</p>
@@ -233,16 +207,24 @@ function Footer() {
 }
 
 export default function Shell() {
-  const { ageOk, toast, user, collapsed, readNotes } = useStore()
-  const unread = notices.filter((item) => !readNotes.includes(item.id)).length
+  const { toast, user, collapsed, readNotes, follows, seen, catalogStatus, catalogError, reloadCatalog, authReady } = useStore()
+  const catalog = useCatalog()
+  const feed = [...notices, ...chapterNotices(catalog, follows, seen)]
+  const unread = feed.filter((item) => !readNotes.includes(item.id)).length
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const catalogOptional = location.pathname === '/bao-mat' || location.pathname === '/tim-kiem' || location.pathname === '/danh-sach'
 
   useEffect(() => {
     setMobileOpen(false)
     window.scrollTo(0, 0)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (location.pathname === '/tim-kiem' || location.pathname === '/danh-sach') return
+    if (catalogStatus === 'idle') reloadCatalog()
+  }, [location.pathname, catalogStatus, reloadCatalog])
 
   useEffect(() => {
     function onKey(event) {
@@ -259,7 +241,6 @@ export default function Shell() {
 
   return (
     <div className={`app ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'nav-open' : ''}`}>
-      {!ageOk && <AgeGate />}
       <Sidebar onSearch={() => setSearchOpen(true)} />
       {mobileOpen && <div className="scrim" onClick={() => setMobileOpen(false)} />}
       <div className="main">
@@ -278,16 +259,24 @@ export default function Shell() {
             <Settings size={18} />
           </Link>
           <Link to={user ? '/bao-mat' : '/dang-nhap'} className="login-mini">
-            <UserRound size={16} /> {user ? user.name : 'Đăng nhập'}
+            <UserRound size={16} /> {!authReady ? '…' : user ? user.name : 'Đăng nhập'}
           </Link>
         </div>
         <div className="content">
-          <Outlet />
+          {!catalogOptional && catalogStatus === 'loading' && <div className="empty">xin hãy chờ ...</div>}
+          {!catalogOptional && catalogStatus === 'error' && (
+            <div className="empty">
+              <p>Không tải được kệ truyện. {catalogError}</p>
+              <p className="muted">Hãy chắc API đang chạy ở cổng 4000.</p>
+              <button className="btn btn-pink" type="button" onClick={reloadCatalog}>Thử lại</button>
+            </div>
+          )}
+          {(catalogOptional || catalogStatus === 'ready') && <Outlet />}
         </div>
         <Footer />
       </div>
       {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
-      {toast && <div className="toast">{toast}</div>}
+      <ToastLine toast={toast} />
     </div>
   )
 }

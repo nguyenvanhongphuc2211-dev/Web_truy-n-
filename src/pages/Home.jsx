@@ -1,21 +1,79 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUp, Eye, Flame, MessageCircle, RefreshCw } from 'lucide-react'
+import { ArrowUp, ChevronLeft, ChevronRight, Eye, Flame, MessageCircle, RefreshCw } from 'lucide-react'
 import Cover from '../components/Cover'
-import { MangaCard, SectionHead } from '../components/Bits'
-import { authorOf, communityAlbums, compact, countByGroup, genresWithCounts, groupOf, groups, hotScore, seedPosts } from '../data'
+import { MangaCard, SectionHead, ShelfCard } from '../components/Bits'
+import { authorOf, compact, countByGroup, groupOf, hotScore, seedPosts } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
+
+function freshness(text = '') {
+  const value = String(text)
+  const hour = value.match(/(\d+)\s*giờ/)
+  if (hour) return Number(hour[1])
+  const day = value.match(/(\d+)\s*ngày/)
+  if (day) return 24 * Number(day[1])
+  if (/hôm nay/i.test(value)) return 1
+  return 800
+}
+
+const UPDATE_PAGE = 12
+
+function UpdatedShelf({ catalog, history, seen, readFilter, page, onFilter, onPage }) {
+  const updated = catalog
+    .filter((manga) => readFilter === 'all' || history.some((item) => item.mangaId === manga.id) || seen.some((key) => key.startsWith(`${manga.id}:`)))
+    .slice()
+    .sort((a, b) => freshness(a.updated) - freshness(b.updated))
+  const pages = Math.max(1, Math.ceil(updated.length / UPDATE_PAGE))
+  const current = Math.min(page, pages - 1)
+  const visible = updated.slice(current * UPDATE_PAGE, current * UPDATE_PAGE + UPDATE_PAGE)
+
+  return (
+    <>
+      <div className="section-head">
+        <h2 className="section-title">Vừa cập nhật</h2>
+        <div className="update-tools">
+          <div className="choice">
+            <button className={`tab ${readFilter === 'all' ? 'on' : ''}`} type="button" onClick={() => onFilter('all')}>Tất cả</button>
+            <button className={`tab ${readFilter === 'read' ? 'on' : ''}`} type="button" onClick={() => onFilter('read')}>Đã đọc</button>
+          </div>
+          {pages > 1 && (
+            <div className="shelf-nav">
+              <button type="button" aria-label="Trang trước" disabled={current <= 0} onClick={() => onPage(current - 1)}>
+                <ChevronLeft size={18} />
+              </button>
+              <button type="button" aria-label="Trang sau" disabled={current >= pages - 1} onClick={() => onPage(current + 1)}>
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {visible.length ? (
+        <div className="shelf-grid">
+          {visible.map((manga) => <ShelfCard key={manga.id} manga={manga} />)}
+        </div>
+      ) : (
+        <div className="empty">{readFilter === 'read' ? 'Bạn chưa đọc bộ nào.' : 'Chưa có truyện vừa cập nhật.'}</div>
+      )}
+    </>
+  )
+}
 
 export default function Home() {
   useTitle('')
   const catalog = useCatalog()
-  const posts = [...useStore().posts, ...seedPosts]
+  const store = useStore()
+  const posts = [...store.posts, ...seedPosts]
+  const groups = store.groups
+  const genreList = store.genres.filter((genre) => genre.count > 0)
   const featured = catalog.slice(0, 5)
   const [index, setIndex] = useState(0)
   const [period, setPeriod] = useState('week')
   const [board, setBoard] = useState('manga')
   const [picks, setPicks] = useState(() => [3, 7])
+  const [readFilter, setReadFilter] = useState('all')
+  const [updatePage, setUpdatePage] = useState(0)
   const current = featured.length ? featured[index % featured.length] : null
 
   useEffect(() => {
@@ -31,12 +89,11 @@ export default function Home() {
     return groups
       .map((group) => {
         const works = catalog.filter((manga) => manga.groupId === group.id)
-        const views = works.reduce((sum, manga) => sum + hotScore(manga, period), 0)
+        const views = works.reduce((sum, manga) => sum + (Number(manga.views) || 0), 0)
         return { ...group, views, count: countByGroup(catalog, group.id) }
       })
       .sort((a, b) => b.views - a.views)
-  }, [catalog, period])
-  const genreList = useMemo(() => genresWithCounts(catalog).filter((genre) => genre.count > 0), [catalog])
+  }, [catalog, groups])
 
   function shuffle(slot) {
     setPicks((currentPicks) => {
@@ -55,10 +112,10 @@ export default function Home() {
       </h1>
       {current && (
         <section className="hero">
-          <div>
+          <div className="hero-copy">
             <p className="kicker">Nổi bật tuần này</p>
             <h1>{current.title}</h1>
-            <p>{current.blurb}</p>
+            <p className="hero-blurb">{current.blurb}</p>
             <div className="hero-actions">
               <Link className="btn btn-pink" to={`/doc/${current.id}/1`}>Đọc ngay</Link>
               <Link className="btn btn-ghost" to={`/truyen/${current.id}`}>Xem chi tiết</Link>
@@ -105,10 +162,18 @@ export default function Home() {
       </section>
 
       <section className="section">
-        <SectionHead title="Truyện mới cập nhật" to="/danh-sach" />
-        <div className="grid-manga">
-          {catalog.slice(0, 10).map((manga) => <MangaCard key={manga.id} manga={manga} />)}
-        </div>
+        <UpdatedShelf
+          catalog={catalog}
+          history={store.history}
+          seen={store.seen}
+          readFilter={readFilter}
+          page={updatePage}
+          onFilter={(value) => {
+            setReadFilter(value)
+            setUpdatePage(0)
+          }}
+          onPage={setUpdatePage}
+        />
       </section>
 
       <section className="section">
@@ -136,33 +201,10 @@ export default function Home() {
               <span className="letter">{group.name[0]}</span>
               <span>
                 <b>{group.name}</b>
-                <span className="views">{group.count} truyện · {compact(Math.round(group.views))} điểm</span>
+                <span className="views">{group.count} truyện · {compact(group.views)} người đọc</span>
               </span>
             </Link>
           ))}
-        </div>
-      </section>
-
-      <section className="section">
-        <SectionHead title="Album nổi bật" to="/album" />
-        <div className="album-grid">
-          {communityAlbums.slice(0, 3).map((album) => {
-            const items = album.mangaIds.map((id) => catalog.find((manga) => manga.id === id)).filter(Boolean)
-            return (
-              <Link key={album.id} to={`/album/${album.id}`} className="album-card">
-                <div className="stack">
-                  {items.slice(0, 3).map((manga) => (
-                    <div key={manga.id} className="mini"><Cover manga={manga} crop /></div>
-                  ))}
-                </div>
-                <div>
-                  <h3>{album.name}</h3>
-                  <p className="muted">{album.desc}</p>
-                  <p className="views">{album.reactions} thích · {album.owner}</p>
-                </div>
-              </Link>
-            )
-          })}
         </div>
       </section>
 
@@ -193,7 +235,7 @@ export default function Home() {
                   <Link to={`/truyen/${manga.id}`} className="pick">
                     <div className="thumb"><Cover manga={manga} /></div>
                     <b>{manga.title}</b>
-                    <p className="meta">{authorOf(manga).name} · {groupOf(manga).name}</p>
+                    <p className="meta">{authorOf(manga, store.authors).name} · {groupOf(manga, store.groups).name}</p>
                   </Link>
                   <button className="btn btn-ghost" style={{ marginTop: 8, width: '100%' }} type="button" onClick={() => shuffle(slot)}>
                     <RefreshCw size={15} /> Đổi truyện
