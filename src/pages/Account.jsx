@@ -6,6 +6,7 @@ import { chapterNotices, notices } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 import Cover from '../components/Cover'
+import ReaderSettings from '../components/ReaderSettings'
 
 function Head({ title, text }) {
   return (
@@ -157,31 +158,9 @@ export function SettingsPage() {
   const { settings, updateSettings } = useStore()
   return (
     <div>
-      <Head title="Cài đặt đọc truyện" text="Áp dụng cho mọi chương. Lưu trên máy bạn." />
-      <div className="panel" style={{ padding: 16, display: 'grid', gap: 14 }}>
-        <div>
-          <b>Cách đọc</b>
-          <div className="choice" style={{ marginTop: 8 }}>
-            <button className={`tab ${settings.mode === 'scroll' ? 'on' : ''}`} type="button" onClick={() => updateSettings({ mode: 'scroll' })}>Cuộn dọc</button>
-            <button className={`tab ${settings.mode === 'page' ? 'on' : ''}`} type="button" onClick={() => updateSettings({ mode: 'page' })}>Từng trang</button>
-          </div>
-        </div>
-        <div>
-          <b>Độ rộng trang</b>
-          <div className="choice" style={{ marginTop: 8 }}>
-            {[640, 760, 920].map((width) => (
-              <button key={width} className={`tab ${settings.width === width ? 'on' : ''}`} type="button" onClick={() => updateSettings({ width })}>{width}px</button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <b>Màu nền</b>
-          <div className="choice" style={{ marginTop: 8 }}>
-            {['#0c0a10', '#16141c', '#efe6d6', '#f7f7f5'].map((color) => (
-              <button key={color} className={`swatch ${settings.bg === color ? 'on' : ''}`} style={{ background: color }} type="button" onClick={() => updateSettings({ bg: color })} />
-            ))}
-          </div>
-        </div>
+      <Head title="Cài đặt đọc truyện" text="Áp dụng cho mọi chương và lưu trên máy này. Cỡ chữ cùng màu nền dùng khi đọc tiểu thuyết." />
+      <div className="panel" style={{ padding: 16 }}>
+        <ReaderSettings settings={settings} onChange={updateSettings} preview />
       </div>
     </div>
   )

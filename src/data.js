@@ -76,16 +76,21 @@ export const mangas = RAW.map(withChapters).map((manga) => {
   return patch ? { ...manga, ...patch } : manga
 })
 
-export const seedPosts = [
+const seedThreads = [
   {
     id: 'p1',
     author: 'Cú đêm',
     tag: 'Tìm truyện',
     title: 'Tìm truyện mưa và ban công',
     excerpt: 'Mình nhớ một bộ hai người nói chuyện qua ban công mùa mưa, nhịp rất chậm. Ai còn link bản dịch thì cho mình xin.',
-    comments: 4,
     up: 18,
     time: '20 giờ trước',
+    replies: [
+      { id: 'p1-r1', user: 'Lan', text: 'Hình như là “Mưa trên ban công” của nhóm Mây Hồng. Chương 12 đúng cảnh hai người nói chuyện ngoài mưa.', at: '18 giờ trước' },
+      { id: 'p1-r2', user: 'Cú đêm', text: 'Đúng tên rồi. Bản đó còn đủ chương không?', at: '16 giờ trước' },
+      { id: 'p1-r3', user: 'Minh', text: 'Nhóm đăng tới chương 18. Nhịp chậm, đúng bộ bạn mô tả.', at: '14 giờ trước' },
+      { id: 'p1-r4', user: 'Hana', text: 'Mình để trong album “đọc một mạch”. Vào trang nhóm Mây Hồng là thấy.', at: '11 giờ trước' },
+    ],
   },
   {
     id: 'p2',
@@ -93,9 +98,17 @@ export const seedPosts = [
     tag: 'Nhóm dịch',
     title: 'Nhận góp ý truyện ngắn cuối tuần',
     excerpt: 'Nhóm đang trống lịch thứ Bảy. Ai có bộ đời thường, nhân vật trưởng thành, cứ để tên ở dưới. Ưu tiên bản đã xong.',
-    comments: 7,
     up: 11,
     time: '1 ngày trước',
+    replies: [
+      { id: 'p2-r1', user: 'Bobby', text: '“Hợp đồng 30 ngày” đã xong, đời thường, nhân vật ngoài hai mươi.', at: '22 giờ trước' },
+      { id: 'p2-r2', user: 'Tiểu Bạch', text: '“Phố nhỏ cuối tuần”, 6 chương, bản đầy đủ.', at: '20 giờ trước' },
+      { id: 'p2-r3', user: 'Vũ Lâm', text: 'Nên lấy bộ dưới 20 chương thì nhóm kịp ra thứ Bảy.', at: '19 giờ trước' },
+      { id: 'p2-r4', user: 'NTRD', text: 'Ghi nhận. Để tên bộ và số chương là được.', at: '18 giờ trước' },
+      { id: 'p2-r5', user: 'Cú đêm', text: '“Đèn vàng sau mưa”, oneshot, đã hoàn.', at: '15 giờ trước' },
+      { id: 'p2-r6', user: 'Hana', text: 'Mình có bản tiếng Việt đã soát. Gửi kèm ở bài tìm truyện.', at: '12 giờ trước' },
+      { id: 'p2-r7', user: 'An', text: 'Thứ Bảy rảnh, mình phụ soát chính tả được.', at: '9 giờ trước' },
+    ],
   },
   {
     id: 'p3',
@@ -103,9 +116,13 @@ export const seedPosts = [
     tag: 'Góp ý',
     title: 'Nên thêm nút đọc tiếp ngay trên thẻ truyện',
     excerpt: 'Lịch sử đọc có rồi nhưng về trang chủ vẫn phải mở lại trang chi tiết. Một nút nhỏ sẽ đỡ hơn.',
-    comments: 3,
     up: 22,
     time: '2 ngày trước',
+    replies: [
+      { id: 'p3-r1', user: 'Bobby', text: 'Đồng ý. Về trang chủ là bấm đọc tiếp luôn.', at: '1 ngày trước' },
+      { id: 'p3-r2', user: 'Vũ Lâm', text: 'Nút nên hiện số chương đang đọc, không chỉ tên truyện.', at: '1 ngày trước' },
+      { id: 'p3-r3', user: 'Tiểu Bạch', text: 'Đặt cạnh bìa. Đừng giấu trong menu.', at: '22 giờ trước' },
+    ],
   },
   {
     id: 'p4',
@@ -113,9 +130,19 @@ export const seedPosts = [
     tag: 'Thảo luận',
     title: 'Manhwa hợp đồng giả vờ hẹn hò còn bộ nào ngon?',
     excerpt: 'Vừa đọc xong một bộ điều khoản 30 ngày. Cần bản cùng chất, nhân vật ngoài hai mươi, bớt hiểu lầm vô cớ.',
-    comments: 9,
     up: 15,
     time: '2 ngày trước',
+    replies: [
+      { id: 'p4-r1', user: 'Hana', text: '“Điều khoản ba mươi ngày”, hết ở chương 24.', at: '2 ngày trước' },
+      { id: 'p4-r2', user: 'Cú đêm', text: '“Hẹn hò theo hợp đồng” cùng chất, ít hiểu lầm.', at: '2 ngày trước' },
+      { id: 'p4-r3', user: 'Minh', text: '“Bạn trai thuê”, 16 chương, nhân vật 24 tuổi.', at: '1 ngày trước' },
+      { id: 'p4-r4', user: 'Lan', text: 'Tránh mấy bộ học đường. Bộ đó hiểu lầm suốt.', at: '1 ngày trước' },
+      { id: 'p4-r5', user: 'NTRD', text: '“Phụ lục tình cảm” đã hoàn, nhịp chậm.', at: '1 ngày trước' },
+      { id: 'p4-r6', user: 'Vũ Lâm', text: 'Mình xếp vào album cuối tuần nếu bạn cần danh sách.', at: '22 giờ trước' },
+      { id: 'p4-r7', user: 'Tiểu Bạch', text: '“Sếp giả vờ” hơi ồn, không hợp nếu bạn muốn nhẹ.', at: '18 giờ trước' },
+      { id: 'p4-r8', user: 'Bobby', text: 'Cảm ơn. Mình đọc “Điều khoản” trước.', at: '14 giờ trước' },
+      { id: 'p4-r9', user: 'An', text: 'Chương 8 của “Phụ lục” viết lại hợp đồng, đoạn đó đáng đọc.', at: '10 giờ trước' },
+    ],
   },
   {
     id: 'p5',
@@ -123,9 +150,12 @@ export const seedPosts = [
     tag: 'Cộng đồng',
     title: 'Ai lập album “đọc một mạch” chưa?',
     excerpt: 'Mình muốn một danh sách dưới 30 chương để đọc trong cuối tuần. Có thể lấy từ truyện đã hoàn thành.',
-    comments: 2,
     up: 6,
     time: '3 ngày trước',
+    replies: [
+      { id: 'p5-r1', user: 'Hana', text: 'Album “Đọc một mạch” đang có 4 bộ, bộ nào cũng dưới 30 chương.', at: '2 ngày trước' },
+      { id: 'p5-r2', user: 'Bobby', text: 'Thêm “Đèn vàng sau mưa”, 8 chương, một tối là xong.', at: '2 ngày trước' },
+    ],
   },
   {
     id: 'p6',
@@ -133,11 +163,28 @@ export const seedPosts = [
     tag: 'Dịch thuật',
     title: 'Bàn cách đặt tiêu đề chương cho sát lời thoại',
     excerpt: 'Đặt tên chương theo câu nhân vật nói thường dễ nhớ hơn tóm tắt cốt. Mọi người đang đặt theo kiểu nào?',
-    comments: 5,
     up: 13,
     time: '4 ngày trước',
+    replies: [
+      { id: 'p6-r1', user: 'Cú đêm', text: 'Mình lấy đúng câu nhân vật nói ở cuối trang.', at: '3 ngày trước' },
+      { id: 'p6-r2', user: 'NTRD', text: 'Tóm tắt cốt dễ tìm lại, nhưng câu thoại dễ nhớ hơn.', at: '3 ngày trước' },
+      { id: 'p6-r3', user: 'Tiểu Bạch', text: 'Giữ khoảng tám chữ. Dài hơn sẽ bị cắt trên thẻ chương.', at: '2 ngày trước' },
+      { id: 'p6-r4', user: 'Vũ Lâm', text: 'Chương hành động thì tóm tắt. Chương thoại thì lấy câu nói.', at: '2 ngày trước' },
+      { id: 'p6-r5', user: 'Hana', text: 'Nhóm mình thử cả hai. Câu thoại được bấm nhiều hơn.', at: '1 ngày trước' },
+    ],
   },
 ]
+
+export const seedReplies = Object.fromEntries(seedThreads.map((thread) => [thread.id, thread.replies]))
+
+export const seedPosts = seedThreads.map(({ replies, ...post }) => ({
+  ...post,
+  comments: replies.length,
+}))
+
+export function forumReplies(postId, userReplies = {}) {
+  return [...(seedReplies[postId] || []), ...(userReplies[postId] || [])]
+}
 
 export const notices = [
   {

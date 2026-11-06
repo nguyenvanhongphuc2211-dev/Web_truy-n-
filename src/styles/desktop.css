@@ -444,7 +444,7 @@ label.lbl { display: grid; gap: 6px; font-size: 13px; color: var(--text-muted); 
 }
 .novel-kicker { margin: 0; text-align: center; color: #7a634f; font-size: var(--fs-sm); }
 .novel-sheet h2 { margin: 10px 0 28px; text-align: center; font-size: 28px; letter-spacing: -0.02em; line-height: 1.25; }
-.novel-body p { margin: 0 0 1.15em; font-size: var(--fs-lg); line-height: 1.9; text-align: justify; text-indent: 2em; }
+.novel-body p { margin: 0 0 1.15em; font-size: var(--reader-font, var(--fs-lg)); line-height: 1.9; text-align: justify; text-indent: 2em; }
 .novel-nav { display: flex; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); padding-top: var(--space-5); border-top: 1px solid rgba(36, 28, 22, .12); }
 .novel-sheet.is-dark { background: var(--surface); color: #f4efe6; }
 .novel-sheet.is-dark .novel-kicker { color: #b7a89a; }
@@ -453,9 +453,23 @@ label.lbl { display: grid; gap: 6px; font-size: 13px; color: var(--text-muted); 
 .novel-sheet:not(.is-dark) .novel-nav .btn-ghost:hover { background: rgba(36, 28, 22, .06); }
 .endcap { text-align: center; padding: var(--space-5); }
 .popover {
-  position: absolute; right: var(--space-6); top: 62px; z-index: 25; width: min(320px, calc(100% - 32px));
+  position: absolute; right: var(--space-6); top: 62px; z-index: 25; width: min(360px, calc(100% - 32px));
+  max-height: min(70vh, 560px); overflow: auto;
   background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: var(--space-4); box-shadow: var(--shadow);
 }
+.reader-settings { display: grid; gap: 14px; }
+.reader-settings .lbl { margin: 0 0 8px; font-size: 13px; color: var(--text-muted); font-weight: 700; }
+.setting-hint { margin: 8px 0 0; font-size: var(--fs-sm); }
+.reader-settings .tab { min-height: var(--tap); }
+.swatch-choice {
+  min-height: var(--tap); display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  border-radius: var(--radius-pill); padding: 0 12px 0 6px; cursor: pointer; font: inherit; font-weight: 700;
+}
+.swatch-choice.on { border-color: var(--ring); background: var(--surface-3); }
+.swatch-choice .swatch { width: 28px; height: 28px; pointer-events: none; }
+.setting-preview { margin: 0; padding: 18px 20px 8px; box-shadow: none; }
+.setting-preview .novel-body p { margin: 0; text-indent: 0; }
 .choice { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .update-tools { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
 .swatch { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border-strong); cursor: pointer; }

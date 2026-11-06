@@ -86,7 +86,6 @@
 @media (max-width: 720px) {
   .novel-sheet { padding: 28px 18px 20px; }
   .novel-sheet h2 { font-size: 22px; }
-  .novel-body p { font-size: 17px; }
 }
 
 @media (max-width: 640px) {

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowUp, ChevronLeft, ChevronRight, Eye, Flame, MessageCircle, RefreshCw } from 'lucide-react'
 import Cover from '../components/Cover'
 import { MangaCard, SectionHead, ShelfCard } from '../components/Bits'
-import { authorOf, compact, countByGroup, groupOf, hotScore, seedPosts } from '../data'
+import { authorOf, compact, countByGroup, forumReplies, groupOf, hotScore, seedPosts } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 
@@ -155,7 +155,7 @@ export default function Home() {
               </div>
               <h3>{post.title}</h3>
               <p>{post.excerpt}</p>
-              <div className="post-foot"><span><MessageCircle size={13} /> {post.comments} bình luận</span></div>
+              <div className="post-foot"><span><MessageCircle size={13} /> {forumReplies(post.id, store.replies).length} bình luận</span></div>
             </Link>
           ))}
         </div>

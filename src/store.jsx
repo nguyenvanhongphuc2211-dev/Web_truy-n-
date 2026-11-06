@@ -1,11 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { api, getToken, setToken } from './api'
 import { authorLabel, withChapters } from './data'
+import { readerSettings } from './readerSettings'
 
 const KEY = 'mochi-store-v1'
 const StoreContext = createContext(null)
-
-const defaultSettings = { mode: 'scroll', width: 760, bg: '#0c0a10' }
 
 function load() {
   try {
@@ -58,7 +57,7 @@ export function StoreProvider({ children }) {
       collapsed: false,
       ...rest,
       follows,
-      settings: { ...defaultSettings, ...(savedSettings || {}) },
+      settings: readerSettings(savedSettings),
     }
   })
   const [toast, setToast] = useState(null)
@@ -414,7 +413,7 @@ export function StoreProvider({ children }) {
         notify('Đã lưu thông tin trên máy này')
       },
       updateSettings: (partial) => {
-        setState((s) => ({ ...s, settings: { ...s.settings, ...partial } }))
+        setState((s) => ({ ...s, settings: readerSettings({ ...s.settings, ...partial }) }))
       },
       markNotice: (id) => {
         setState((s) => ({ ...s, readNotes: s.readNotes.includes(id) ? s.readNotes : [...s.readNotes, id] }))

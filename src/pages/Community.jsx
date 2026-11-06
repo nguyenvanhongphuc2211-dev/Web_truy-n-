@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowUp, MessageCircle } from 'lucide-react'
 import { MangaGrid } from '../components/Bits'
-import { countByGroup, seedPosts } from '../data'
+import { countByGroup, forumReplies, seedPosts } from '../data'
 import { useTitle } from '../hooks'
 import { useCatalog, useStore } from '../store'
 
@@ -57,7 +57,7 @@ export function Forum() {
             </div>
             <h3>{post.title}</h3>
             <p>{post.excerpt}</p>
-            <div className="post-foot"><MessageCircle size={13} /> {(store.replies[post.id]?.length || 0) + post.comments} bình luận</div>
+            <div className="post-foot"><MessageCircle size={13} /> {forumReplies(post.id, store.replies).length} bình luận</div>
           </Link>
         ))}
       </div>
@@ -72,7 +72,7 @@ export function PostPage() {
   const [text, setText] = useState('')
   useTitle(post?.title || 'Bài viết')
   if (!post) return <div className="empty">Không thấy bài viết.</div>
-  const replies = store.replies[post.id] || []
+  const replies = forumReplies(post.id, store.replies)
   return (
     <div>
       <p className="crumbs"><Link to="/dien-dan">Diễn đàn</Link> / {post.tag}</p>
@@ -81,7 +81,7 @@ export function PostPage() {
         <h1 style={{ marginBottom: 8 }}>{post.title}</h1>
         <p className="prose">{post.excerpt}</p>
       </article>
-      <h2>Bình luận</h2>
+      <h2>Bình luận · {replies.length}</h2>
       <form className="row" onSubmit={(event) => { event.preventDefault(); if (!store.askLogin()) return; store.addReply(post.id, text); setText('') }}>
         <input className="input" value={text} onChange={(e) => setText(e.target.value)} aria-label="Trả lời" placeholder="Viết trả lời..." />
         <button className="btn btn-pink" type="submit">Gửi</button>
@@ -89,7 +89,7 @@ export function PostPage() {
       {replies.map((reply) => (
         <div key={reply.id} className="comment"><b>{reply.user}</b> <span className="meta">{reply.at}</span><p>{reply.text}</p></div>
       ))}
-      {!replies.length && <p className="muted">Chưa có trả lời mới.</p>}
+      {!replies.length && <p className="muted">Chưa có bình luận.</p>}
     </div>
   )
 }
